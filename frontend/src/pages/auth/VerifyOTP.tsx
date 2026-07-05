@@ -307,7 +307,7 @@ export default function VerifyOTP() {
               >
                 {isResending ? (
                   <>
-                    <Spinner size={14} color="#E63946" />
+                    <Spinner size={14} color="accent" />
                     <span>Sending...</span>
                   </>
                 ) : countdown > 0 ? (

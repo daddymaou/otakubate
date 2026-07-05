@@ -25,6 +25,15 @@ interface User {
   pronouns?: string
   location?: string
   website?: string
+  notificationSettings?: {
+    newFollowers?: boolean
+    postLikes?: boolean
+    comments?: boolean
+    mentions?: boolean
+    directMessages?: boolean
+    emailNotifications?: boolean
+    pushNotifications?: boolean
+  }
 }
 
 interface AuthState {

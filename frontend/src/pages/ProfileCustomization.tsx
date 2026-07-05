@@ -644,12 +644,12 @@ export default function ProfileCustomization() {
             <div className="grid grid-cols-4 gap-2 sm:gap-3">
               {DEFAULT_AVATARS.map((avatar) => (
                 <button key={avatar.id} onClick={() => handleSelectDefaultAvatar(avatar.path)} className="relative group">
-                  <div 
-                    className={`rounded-full transition-all duration-200 ${selectedAvatar === avatar.path && avatarType === 'default' ? 'ring-2 ring-offset-2' : 'hover:scale-105'}`} 
-                    style={{ outlineColor: '#E63946', ringOffsetColor: '#FFF8EE' }}
-                  >
-                    <img src={avatar.path} className="w-full aspect-square rounded-full object-cover" alt="" />
-                  </div>
+           <div 
+  className={`rounded-full transition-all duration-200 ${selectedAvatar === avatar.path && avatarType === 'default' ? 'ring-2 ring-offset-2' : 'hover:scale-105'}`} 
+  style={{ outlineColor: '#E63946' }}
+>
+  <img src={avatar.path} className="w-full aspect-square rounded-full object-cover" alt="" />
+</div>
                   {selectedAvatar === avatar.path && avatarType === 'default' && <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#E63946] flex items-center justify-center shadow-md"><Check size={12} className="text-white" /></div>}
                 </button>
               ))}

@@ -6,7 +6,7 @@ import {
   Copy
 } from 'lucide-react'
 import Avatar from '../../../components/ui/Avatar'
-import ShareModal from './ShareModal'
+import ShareModal from '../../../components/feed/ShareModal'
 import { useAuthStore } from '../../../stores/authStore'
 import toast from 'react-hot-toast'
 

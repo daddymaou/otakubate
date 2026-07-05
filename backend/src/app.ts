@@ -165,6 +165,23 @@ app.get('/api/health', (_req, res) => {
 })
 
 // ============================================
+// ROOT ROUTE - ADDED
+// ============================================
+app.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'OtakuBate API is running',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      users: '/api/users',
+      posts: '/api/posts',
+      health: '/api/health'
+    }
+  })
+})
+
+// ============================================
 // ERROR HANDLER
 // ============================================
 app.use(errorHandler)

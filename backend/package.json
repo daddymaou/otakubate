@@ -2,10 +2,10 @@
   "name": "otakubate-backend",
   "version": "1.0.0",
   "description": "OtakuBate API Server",
-  "main": "src/app.ts",
+  "main": "dist/app.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "build": "echo 'Skipping TypeScript build...' && mkdir -p dist && cp -r src/* dist/ || true",
+    "build": "mkdir -p dist && cp -r src/* dist/ || true",
     "start": "node dist/app.js",
     "seed": "ts-node src/utils/seed.ts"
   },

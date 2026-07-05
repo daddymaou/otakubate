@@ -13,7 +13,7 @@ export default function Explore() {
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const [debouncedQ, setDebouncedQ] = useState('')
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Debounce search input - prevents API spam on every keystroke
   const handleSearchChange = (value: string) => {

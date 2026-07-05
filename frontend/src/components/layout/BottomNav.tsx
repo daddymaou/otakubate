@@ -18,7 +18,7 @@ export default function ExpandableNav() {
   const { user } = useAuthStore()
   const [isExpanded, setIsExpanded] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
-  const navRef = useRef(null)
+  const navRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   // Fetch message unread count for badge - OPTIMIZED to prevent 429
@@ -57,8 +57,8 @@ export default function ExpandableNav() {
   }
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (navRef.current && !navRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (navRef.current && !navRef.current.contains(event.target as Node)) {
         closeWithAnimation()
       }
     }
@@ -74,13 +74,10 @@ export default function ExpandableNav() {
     }
   }, [isExpanded])
 
-  const handleNavClick = (to) => {
+  const handleNavClick = (to: string) => {
     navigate(to)
     closeWithAnimation()
   }
-
-  // Find if messages is in the links
-  const messagesLink = links.find(l => l.to === '/messages')
 
   return (
     <>

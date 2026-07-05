@@ -95,6 +95,7 @@ export default function NotificationSettings() {
     },
   })
 
+  // These functions are kept but will be used when notifications are implemented
   const handleToggle = (key: string, value: boolean) => {
     const newSettings = { ...settings, [key]: value }
     setSettings(newSettings)
@@ -133,6 +134,7 @@ export default function NotificationSettings() {
     updateMutation.mutate(allDisabled)
   }
 
+  // Check if there are changes
   const hasChanges = () => {
     if (!settingsLoaded) return false
     if (!user?.notificationSettings) return true

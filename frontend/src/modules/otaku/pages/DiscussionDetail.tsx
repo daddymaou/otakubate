@@ -19,7 +19,7 @@ export default function DiscussionDetail() {
   const [showMenu, setShowMenu] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { club, loading: clubLoading, isAdmin, isOwner, isMember, refresh } = useClub(slug)
+  const { club, loading: clubLoading, isAdmin, isOwner, isMember, refresh } = useClub(slug || '')
   const { discussion, loading, react, unreact, refresh: refreshDiscussion } = useDiscussion(discussionId || '')
 
   const handleBack = () => navigate(`/clubs/${slug}`)
@@ -83,6 +83,9 @@ export default function DiscussionDetail() {
   }
 
   const canDelete = isAdmin || isOwner || discussion.authorId?._id === localStorage.getItem('userId')
+
+  // Get user ID with fallback
+  const userId = localStorage.getItem('userId') || ''
 
   return (
     <div className="min-h-screen pb-24" style={{ background: 'linear-gradient(135deg, #F5F0E8 0%, #FFE8E8 100%)' }}>
@@ -294,11 +297,11 @@ export default function DiscussionDetail() {
           isOpen={showShareModal}
           onClose={() => setShowShareModal(false)}
           post={{
-            _id: discussion._id,
-            title: discussion.title,
-            content: discussion.content,
-            image: discussion.image,
-            communityId: { slug }
+            _id: discussion._id || '',
+            title: discussion.title || '',
+            content: discussion.content || '',
+            image: discussion.image || '',
+            communityId: { slug: slug || '' }
           }}
         />
       )}

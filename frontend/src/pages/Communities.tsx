@@ -16,7 +16,7 @@ export default function Communities() {
   const [debouncedQ, setDebouncedQ] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', description: '', isPrivate: false })
-  const debounceTimer = useRef<NodeJS.Timeout | null>(null)
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const qc = useQueryClient()
 
   // Debounced search

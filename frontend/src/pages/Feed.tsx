@@ -86,11 +86,9 @@ export default function Feed() {
         zIndex: 1,
         maxWidth: '680px',
         margin: '0 auto',
-        padding: '24px 16px',
-        '@media (minWidth: 768px)': {
-          padding: '32px 24px'
-        }
-      }}>
+        padding: '24px 16px'
+      }}
+      className="feed-container">
         {/* Create Post Component */}
         <CreatePost />
 
@@ -161,6 +159,16 @@ export default function Feed() {
           0%, 100% { transform: translate(0, 0) scale(1); }
           33% { transform: translate(-40px, 20px) scale(1.05); }
           66% { transform: translate(30px, -40px) scale(0.95); }
+        }
+        
+        .feed-container {
+          padding: 24px 16px;
+        }
+        
+        @media (min-width: 768px) {
+          .feed-container {
+            padding: 32px 24px;
+          }
         }
       `}</style>
     </div>

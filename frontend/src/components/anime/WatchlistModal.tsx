@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { 
   X, Eye, Clock, CheckCircle, Bookmark, Trash2, 
   Film, Sparkles, Search, List, Grid, Heart,
-  ChevronLeft, ChevronRight, Calendar, Star,
-  Filter, Tv, Users, Tag, AlertCircle
+  ChevronDown
 } from 'lucide-react'
 import { useWatchlist } from '../../hooks/useWatchlist'
 import Spinner from '../ui/Spinner'

@@ -61,7 +61,7 @@ export const connectSocket = (userId: string) => {
     if (reason === 'io server disconnect' || reason === 'transport close') {
       if (connectedUserId) {
         setTimeout(() => {
-          connectSocket(connectedUserId)
+          connectSocket(connectedUserId as string)
         }, 2000)
       }
     }
@@ -125,7 +125,7 @@ export const sendTypingStart = (data: {
   senderId: string
   senderName: string
 }) => {
-  if (socket.connected) {
+  if (socket.connected && data.receiverId) {
     socket.emit('typing:start', data)
   }
 }
@@ -134,7 +134,7 @@ export const sendTypingStop = (data: {
   receiverId: string
   senderId: string
 }) => {
-  if (socket.connected) {
+  if (socket.connected && data.receiverId) {
     socket.emit('typing:stop', data)
   }
 }

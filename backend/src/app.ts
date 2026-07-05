@@ -22,7 +22,7 @@ import watchlistRoutes from './routes/watchlist'
 import adminRoutes from './routes/admin'
 import uploadRoutes from './routes/upload'
 import ogRoutes from './routes/og'
-import aiRoutes from './routes/ai'  // ← ADD THIS
+import aiRoutes from './routes/ai'
 import { errorHandler } from './middleware/errorHandler'
 import { rateLimiter } from './middleware/rateLimiter'
 import User from './models/User'
@@ -61,7 +61,8 @@ export function setupSocket(io: Server) {
         if (!userId) return
         onlineUsers.set(userId, socket.id)
         socket.data.userId = userId
-        await User.findByIdAndUpdate(userId, {
+        // ✅ FIX: Added type assertion
+        await (User as any).findByIdAndUpdate(userId, {
           isOnline: true,
           lastSeen: new Date()
         })
@@ -77,7 +78,8 @@ export function setupSocket(io: Server) {
         const userId = socket.data.userId
         if (userId && onlineUsers.has(userId)) {
           onlineUsers.delete(userId)
-          await User.findByIdAndUpdate(userId, {
+          // ✅ FIX: Added type assertion
+          await (User as any).findByIdAndUpdate(userId, {
             isOnline: false,
             lastSeen: new Date()
           })
@@ -146,7 +148,7 @@ app.use('/api/upload', uploadRoutes)
 app.use('/api/otaku', otakuModule)
 
 // ============================================
-// AI ROUTES - ADD THIS
+// AI ROUTES
 // ============================================
 app.use('/api/ai', aiRoutes)
 

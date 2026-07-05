@@ -173,7 +173,7 @@ export default function Login() {
                 style={{ background: 'rgba(0,0,0,0.05)', color: '#666' }}
               >
                 {resendOtpMutation.isPending ? (
-                  <Spinner size={14} color="#666" />
+                  <Spinner size={14} color="dark" />
                 ) : (
                   <>
                     <RefreshCw size={12} /> Resend Code

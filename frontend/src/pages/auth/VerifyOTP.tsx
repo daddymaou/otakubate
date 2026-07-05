@@ -317,7 +317,7 @@ export default function VerifyOTP() {
                 )}
               </button>
             </p>
-            <div className="flex items-center justify-center gap-1 mt-3 text-xs" style={{ color: '#bbb' }}>
+            <div className="flex items-center justify-center gap-1 mt-3 text-xs" style={{ color: 'accent' }}>
               <AlertCircle size={12} />
               <span>Check your spam folder if you don't see the email</span>
             </div>

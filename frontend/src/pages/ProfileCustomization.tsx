@@ -644,7 +644,10 @@ export default function ProfileCustomization() {
             <div className="grid grid-cols-4 gap-2 sm:gap-3">
               {DEFAULT_AVATARS.map((avatar) => (
                 <button key={avatar.id} onClick={() => handleSelectDefaultAvatar(avatar.path)} className="relative group">
-                  <div className={`rounded-full transition-all duration-200 ${selectedAvatar === avatar.path && avatarType === 'default' ? 'ring-2 ring-offset-2' : 'hover:scale-105'}`} style={{ ringColor: '#E63946', ringOffsetColor: '#FFF8EE' }}>
+                  <div 
+                    className={`rounded-full transition-all duration-200 ${selectedAvatar === avatar.path && avatarType === 'default' ? 'ring-2 ring-offset-2' : 'hover:scale-105'}`} 
+                    style={{ outlineColor: '#E63946', ringOffsetColor: '#FFF8EE' }}
+                  >
                     <img src={avatar.path} className="w-full aspect-square rounded-full object-cover" alt="" />
                   </div>
                   {selectedAvatar === avatar.path && avatarType === 'default' && <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#E63946] flex items-center justify-center shadow-md"><Check size={12} className="text-white" /></div>}
@@ -676,7 +679,7 @@ export default function ProfileCustomization() {
             <div className="relative"><div className="absolute inset-0 flex items-center"><div className="w-full border-t" style={{ borderColor: 'rgba(230,57,70,0.1)' }} /></div><div className="relative flex justify-center text-xs"><span className="px-3 py-1 rounded-full text-xs" style={{ background: '#FFF8EE', color: '#999' }}>OR CHOOSE DEFAULT</span></div></div>
             <div className="space-y-2 sm:space-y-3">
               {DEFAULT_BANNERS.map((banner) => (
-                <button key={banner.id} onClick={() => handleSelectDefaultBanner(banner.path)} className={`relative w-full h-20 sm:h-24 rounded-xl overflow-hidden transition-all duration-200 ${selectedBanner === banner.path && bannerType === 'default' ? 'ring-2' : 'hover:scale-[1.02]'}`} style={{ ringColor: '#E63946' }}>
+                <button key={banner.id} onClick={() => handleSelectDefaultBanner(banner.path)} className={`relative w-full h-20 sm:h-24 rounded-xl overflow-hidden transition-all duration-200 ${selectedBanner === banner.path && bannerType === 'default' ? 'ring-2' : 'hover:scale-[1.02]'}`} style={{ outlineColor: '#E63946' }}>
                   <img src={banner.path} className="w-full h-full object-cover" alt="" />
                   {selectedBanner === banner.path && bannerType === 'default' && <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#E63946] flex items-center justify-center shadow-md"><Check size={12} className="text-white" /></div>}
                 </button>

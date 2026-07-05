@@ -398,7 +398,7 @@ export default function Register() {
               >
                 {resendOtpMutation.isPending ? (
                   <>
-                    <Spinner size={12} color="#E63946" />
+                    <Spinner size={12} color="accent" />
                     <span>Sending...</span>
                   </>
                 ) : resendCountdown > 0 ? (

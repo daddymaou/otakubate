@@ -5,10 +5,10 @@ import {
   MessageCircle, ChevronRight, TrendingUp, Flame,
   Crown, Shield, Zap, Hash
 } from 'lucide-react'
-import { useCommunities } from '../hooks/useCommunity'
-import Avatar from '../../../components/ui/Avatar'
-import Modal from '../../../components/ui/Modal'
-import Spinner from '../../../components/ui/Spinner'
+import { useCommunities } from '../hooks/useClubs'  // FIXED: Changed from useCommunity to useClubs
+import Avatar from '../components/ui/Avatar'  // FIXED: Changed path
+import Modal from '../components/ui/Modal'    // FIXED: Changed path
+import Spinner from '../components/ui/Spinner' // FIXED: Changed path
 import toast from 'react-hot-toast'
 
 export default function CommunityList() {
@@ -158,7 +158,7 @@ export default function CommunityList() {
         {/* Communities Grid */}
         {!loading && communities.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {communities.map((c, index) => (
+            {communities.map((c: any, index: number) => (
               <div 
                 key={c._id} 
                 className="group rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-xl"

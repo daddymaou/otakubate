@@ -12,12 +12,13 @@ import {
 // SEARCH ANIME
 // ============================================
 
-export const search = async (req: Request, res: Response) => {
+export const search = async (req: Request, res: Response): Promise<void> => {
   try {
     const { q, page = '1', limit = '24' } = req.query
 
     if (!q) {
-      return res.status(400).json({ success: false, error: 'Search query required' })
+      res.status(400).json({ success: false, error: 'Search query required' })
+      return
     }
 
     const result = await searchAnime(
@@ -44,24 +45,29 @@ export const search = async (req: Request, res: Response) => {
 // GET ANIME DETAILS
 // ============================================
 
-export const details = async (req: Request, res: Response) => {
+export const details = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params
     
-    if (!id || isNaN(parseInt(id))) {
-      return res.status(400).json({ 
+    // ✅ FIX: Convert id to string if it's an array
+    const animeId = Array.isArray(id) ? id[0] : id
+    
+    if (!animeId || isNaN(parseInt(animeId))) {
+      res.status(400).json({ 
         success: false, 
         error: 'Invalid anime ID' 
       })
+      return
     }
 
-    const anime = await getAnimeDetails(parseInt(id))
+    const anime = await getAnimeDetails(parseInt(animeId))
     
     if (!anime) {
-      return res.status(404).json({ 
+      res.status(404).json({ 
         success: false, 
         error: 'Anime not found' 
       })
+      return
     }
 
     res.json({
@@ -82,7 +88,7 @@ export const details = async (req: Request, res: Response) => {
 // GET CATEGORY ANIME
 // ============================================
 
-export const category = async (req: Request, res: Response) => {
+export const category = async (req: Request, res: Response): Promise<void> => {
   try {
     const { filter = 'trending', page = '1', limit = '24' } = req.query
 
@@ -110,12 +116,13 @@ export const category = async (req: Request, res: Response) => {
 // GET SEASONAL ANIME
 // ============================================
 
-export const seasonal = async (req: Request, res: Response) => {
+export const seasonal = async (req: Request, res: Response): Promise<void> => {
   try {
     const { year, season, page = '1', limit = '24' } = req.query
 
     if (!year || !season) {
-      return res.status(400).json({ success: false, error: 'Year and season required' })
+      res.status(400).json({ success: false, error: 'Year and season required' })
+      return
     }
 
     const result = await getSeasonalAnime(
@@ -143,7 +150,7 @@ export const seasonal = async (req: Request, res: Response) => {
 // GET CURRENT SEASON
 // ============================================
 
-export const currentSeason = (req: Request, res: Response) => {
+export const currentSeason = (req: Request, res: Response): void => {
   try {
     const result = getCurrentSeason()
     res.json({
@@ -164,7 +171,7 @@ export const currentSeason = (req: Request, res: Response) => {
 // GET GENRES
 // ============================================
 
-export const genres = (req: Request, res: Response) => {
+export const genres = (req: Request, res: Response): void => {
   try {
     const genresList = getGenres()
     res.json({

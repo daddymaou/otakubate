@@ -10,7 +10,7 @@ const router = Router()
 // ADMIN DASHBOARD STATS
 // ============================================
 
-router.get('/stats', protect, adminOnly, async (req: AuthRequest, res: Response) => {
+router.get('/stats', protect, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const totalUsers = await User.countDocuments()
     const totalClubs = await Club.countDocuments()
@@ -34,7 +34,7 @@ router.get('/stats', protect, adminOnly, async (req: AuthRequest, res: Response)
 // GET ALL CLUBS (Admin)
 // ============================================
 
-router.get('/clubs', protect, adminOnly, async (req: AuthRequest, res: Response) => {
+router.get('/clubs', protect, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const clubs = await Club.find()
       .sort({ createdAt: -1 })
@@ -55,7 +55,7 @@ router.get('/clubs', protect, adminOnly, async (req: AuthRequest, res: Response)
 // GET ALL USERS (Admin)
 // ============================================
 
-router.get('/users', protect, adminOnly, async (req: AuthRequest, res: Response) => {
+router.get('/users', protect, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const users = await User.find()
       .select('-password -otp -otpExpires -verificationToken -verificationOtp -verificationOtpExpires -actionOtp')
@@ -77,13 +77,14 @@ router.get('/users', protect, adminOnly, async (req: AuthRequest, res: Response)
 // DELETE CLUB (Admin)
 // ============================================
 
-router.delete('/clubs/:id', protect, adminOnly, async (req: AuthRequest, res: Response) => {
+router.delete('/clubs/:id', protect, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params
     const club = await Club.findById(id)
     
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
     
     await club.deleteOne()
@@ -102,13 +103,14 @@ router.delete('/clubs/:id', protect, adminOnly, async (req: AuthRequest, res: Re
 // DELETE USER (Admin)
 // ============================================
 
-router.delete('/users/:id', protect, adminOnly, async (req: AuthRequest, res: Response) => {
+router.delete('/users/:id', protect, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params
     const user = await User.findById(id)
     
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' })
+      res.status(404).json({ success: false, error: 'User not found' })
+      return
     }
     
     await user.deleteOne()
@@ -127,13 +129,14 @@ router.delete('/users/:id', protect, adminOnly, async (req: AuthRequest, res: Re
 // TOGGLE USER ADMIN STATUS
 // ============================================
 
-router.post('/users/:id/toggle-admin', protect, adminOnly, async (req: AuthRequest, res: Response) => {
+router.post('/users/:id/toggle-admin', protect, adminOnly, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params
     const user = await User.findById(id)
     
     if (!user) {
-      return res.status(404).json({ success: false, error: 'User not found' })
+      res.status(404).json({ success: false, error: 'User not found' })
+      return
     }
     
     user.isAdmin = !user.isAdmin

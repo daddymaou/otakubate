@@ -8,7 +8,7 @@ import slugify from 'slugify'
 // CREATE CLUB
 // ============================================
 
-export const createClub = async (req: AuthRequest, res: Response) => {
+export const createClub = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, description, avatar, banner } = req.body
     const userId = req.user?._id
@@ -17,12 +17,14 @@ export const createClub = async (req: AuthRequest, res: Response) => {
     console.log('📝 Create club - name:', name)
 
     if (!name || !name.trim()) {
-      return res.status(400).json({ success: false, error: 'Club name required' })
+      res.status(400).json({ success: false, error: 'Club name required' })
+      return
     }
 
     const existing = await Club.findOne({ name: name.trim() })
     if (existing) {
-      return res.status(400).json({ success: false, error: 'Club name already taken' })
+      res.status(400).json({ success: false, error: 'Club name already taken' })
+      return
     }
 
     const slug = slugify(name.trim(), { lower: true, strict: true })
@@ -62,7 +64,7 @@ export const createClub = async (req: AuthRequest, res: Response) => {
 // GET ALL CLUBS
 // ============================================
 
-export const getClubs = async (req: AuthRequest, res: Response) => {
+export const getClubs = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 20 } = req.query
     const userId = req.user?._id
@@ -103,7 +105,7 @@ export const getClubs = async (req: AuthRequest, res: Response) => {
 // GET RANDOM CLUBS
 // ============================================
 
-export const getRandomClubs = async (req: AuthRequest, res: Response) => {
+export const getRandomClubs = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { limit = 6 } = req.query
     const userId = req.user?._id
@@ -133,7 +135,7 @@ export const getRandomClubs = async (req: AuthRequest, res: Response) => {
 // GET SINGLE CLUB
 // ============================================
 
-export const getClub = async (req: AuthRequest, res: Response) => {
+export const getClub = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { slug } = req.params
     const userId = req.user?._id
@@ -141,7 +143,8 @@ export const getClub = async (req: AuthRequest, res: Response) => {
     const club = await Club.findOne({ slug }).lean()
 
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     const clubWithUserStatus = {
@@ -162,7 +165,7 @@ export const getClub = async (req: AuthRequest, res: Response) => {
 // UPDATE CLUB
 // ============================================
 
-export const updateClub = async (req: AuthRequest, res: Response) => {
+export const updateClub = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params
     const { name, description, avatar, banner } = req.body
@@ -170,20 +173,23 @@ export const updateClub = async (req: AuthRequest, res: Response) => {
 
     const club = await Club.findById(id)
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     const isOwner = club.ownerId?.toString() === userId?.toString()
     const isAdmin = club.admins?.some((a: any) => a.toString() === userId?.toString())
 
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ success: false, error: 'Only admins can update club' })
+      res.status(403).json({ success: false, error: 'Only admins can update club' })
+      return
     }
 
     if (name && name.trim()) {
       const existing = await Club.findOne({ name: name.trim(), _id: { $ne: id } })
       if (existing) {
-        return res.status(400).json({ success: false, error: 'Club name already taken' })
+        res.status(400).json({ success: false, error: 'Club name already taken' })
+        return
       }
       club.name = name.trim()
       club.slug = slugify(name.trim(), { lower: true, strict: true })
@@ -211,10 +217,10 @@ export const updateClub = async (req: AuthRequest, res: Response) => {
 }
 
 // ============================================
-// DELETE CLUB - FIXED
+// DELETE CLUB
 // ============================================
 
-export const deleteClub = async (req: AuthRequest, res: Response) => {
+export const deleteClub = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params
     const userId = req.user?._id
@@ -228,7 +234,8 @@ export const deleteClub = async (req: AuthRequest, res: Response) => {
     const club = await Club.findById(id)
     if (!club) {
       console.log('❌ Club not found:', id)
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     console.log('📋 Club found:', { 
@@ -241,7 +248,8 @@ export const deleteClub = async (req: AuthRequest, res: Response) => {
     const isOwner = club.ownerId?.toString() === userId?.toString()
     if (!isOwner) {
       console.log('❌ User is not the owner')
-      return res.status(403).json({ success: false, error: 'Only the owner can delete this club' })
+      res.status(403).json({ success: false, error: 'Only the owner can delete this club' })
+      return
     }
 
     // Delete all discussions
@@ -263,7 +271,7 @@ export const deleteClub = async (req: AuthRequest, res: Response) => {
 // GET CLUB MEMBERS
 // ============================================
 
-export const getClubMembers = async (req: AuthRequest, res: Response) => {
+export const getClubMembers = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params
 
@@ -274,7 +282,8 @@ export const getClubMembers = async (req: AuthRequest, res: Response) => {
       .lean()
 
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     res.json({ 
@@ -290,10 +299,10 @@ export const getClubMembers = async (req: AuthRequest, res: Response) => {
 }
 
 // ============================================
-// JOIN CLUB - FIXED
+// JOIN CLUB
 // ============================================
 
-export const joinClub = async (req: AuthRequest, res: Response) => {
+export const joinClub = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params
     const userId = req.user?._id
@@ -303,20 +312,23 @@ export const joinClub = async (req: AuthRequest, res: Response) => {
 
     if (!userId) {
       console.log('❌ joinClub - No user ID')
-      return res.status(401).json({ success: false, error: 'Not authenticated' })
+      res.status(401).json({ success: false, error: 'Not authenticated' })
+      return
     }
 
     const club = await Club.findById(id)
     if (!club) {
       console.log('❌ joinClub - Club not found:', id)
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     console.log('📋 joinClub - Club found:', club.name)
 
     if (club.members?.some((m: any) => m.toString() === userId.toString())) {
       console.log('❌ joinClub - Already a member')
-      return res.status(400).json({ success: false, error: 'Already a member' })
+      res.status(400).json({ success: false, error: 'Already a member' })
+      return
     }
 
     club.members.push(userId)
@@ -335,7 +347,7 @@ export const joinClub = async (req: AuthRequest, res: Response) => {
 // LEAVE CLUB
 // ============================================
 
-export const leaveClub = async (req: AuthRequest, res: Response) => {
+export const leaveClub = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params
     const userId = req.user?._id
@@ -344,17 +356,20 @@ export const leaveClub = async (req: AuthRequest, res: Response) => {
     console.log('🔍 leaveClub - clubId:', id)
 
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' })
+      res.status(401).json({ success: false, error: 'Not authenticated' })
+      return
     }
 
     const club = await Club.findById(id)
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     if (club.ownerId?.toString() === userId.toString()) {
       console.log('❌ leaveClub - Owner cannot leave')
-      return res.status(400).json({ success: false, error: 'Owner cannot leave their own club' })
+      res.status(400).json({ success: false, error: 'Owner cannot leave their own club' })
+      return
     }
 
     club.members = club.members?.filter((m: any) => m.toString() !== userId.toString()) || []
@@ -376,26 +391,30 @@ export const leaveClub = async (req: AuthRequest, res: Response) => {
 // PROMOTE TO ADMIN (Owner only)
 // ============================================
 
-export const promoteToAdmin = async (req: AuthRequest, res: Response) => {
+export const promoteToAdmin = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id, userId } = req.params
     const ownerId = req.user?._id
 
     const club = await Club.findById(id)
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     if (club.ownerId?.toString() !== ownerId?.toString()) {
-      return res.status(403).json({ success: false, error: 'Only the owner can promote members' })
+      res.status(403).json({ success: false, error: 'Only the owner can promote members' })
+      return
     }
 
     if (club.admins?.some((a: any) => a.toString() === userId)) {
-      return res.status(400).json({ success: false, error: 'User is already an admin' })
+      res.status(400).json({ success: false, error: 'User is already an admin' })
+      return
     }
 
     if (!club.members?.some((m: any) => m.toString() === userId)) {
-      return res.status(400).json({ success: false, error: 'User is not a member of this club' })
+      res.status(400).json({ success: false, error: 'User is not a member of this club' })
+      return
     }
 
     club.admins.push(userId as any)
@@ -412,22 +431,25 @@ export const promoteToAdmin = async (req: AuthRequest, res: Response) => {
 // DEMOTE FROM ADMIN (Owner only)
 // ============================================
 
-export const demoteFromAdmin = async (req: AuthRequest, res: Response) => {
+export const demoteFromAdmin = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id, userId } = req.params
     const ownerId = req.user?._id
 
     const club = await Club.findById(id)
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     if (club.ownerId?.toString() !== ownerId?.toString()) {
-      return res.status(403).json({ success: false, error: 'Only the owner can demote admins' })
+      res.status(403).json({ success: false, error: 'Only the owner can demote admins' })
+      return
     }
 
     if (club.ownerId?.toString() === userId) {
-      return res.status(400).json({ success: false, error: 'Cannot demote the owner' })
+      res.status(400).json({ success: false, error: 'Cannot demote the owner' })
+      return
     }
 
     club.admins = club.admins?.filter((a: any) => a.toString() !== userId) || []
@@ -444,22 +466,25 @@ export const demoteFromAdmin = async (req: AuthRequest, res: Response) => {
 // TRANSFER OWNERSHIP (Owner only)
 // ============================================
 
-export const transferOwnership = async (req: AuthRequest, res: Response) => {
+export const transferOwnership = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id, userId } = req.params
     const ownerId = req.user?._id
 
     const club = await Club.findById(id)
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     if (club.ownerId?.toString() !== ownerId?.toString()) {
-      return res.status(403).json({ success: false, error: 'Only the owner can transfer ownership' })
+      res.status(403).json({ success: false, error: 'Only the owner can transfer ownership' })
+      return
     }
 
     if (!club.members?.some((m: any) => m.toString() === userId)) {
-      return res.status(400).json({ success: false, error: 'User is not a member of this club' })
+      res.status(400).json({ success: false, error: 'User is not a member of this club' })
+      return
     }
 
     club.ownerId = userId as any

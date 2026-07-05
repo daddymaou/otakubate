@@ -3,7 +3,16 @@ import Club from '../models/Club'
 import Discussion from '../models/Discussion'
 import { AuthRequest } from '../../../middleware/auth'
 
-export const isClubAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
+// Add club to AuthRequest interface
+// This is already in auth.ts, but we need to ensure it exists
+// If not, we declare it here
+declare module 'express' {
+  interface Request {
+    club?: any
+  }
+}
+
+export const isClubAdmin = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?._id
     let clubId = req.params.id || req.params.clubId || req.body.clubId || req.query.clubId
@@ -24,18 +33,21 @@ export const isClubAdmin = async (req: AuthRequest, res: Response, next: NextFun
     }
 
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' })
+      res.status(401).json({ success: false, error: 'Not authenticated' })
+      return
     }
 
     if (!clubId) {
       console.log('❌ isClubAdmin - No club ID found')
-      return res.status(400).json({ success: false, error: 'Club ID required' })
+      res.status(400).json({ success: false, error: 'Club ID required' })
+      return
     }
 
     const club = await Club.findById(clubId)
     if (!club) {
       console.log('❌ isClubAdmin - Club not found:', clubId)
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     const isAdmin = club.admins?.some((a: any) => a.toString() === userId.toString())
@@ -44,10 +56,11 @@ export const isClubAdmin = async (req: AuthRequest, res: Response, next: NextFun
     console.log('🔍 isClubAdmin - isAdmin:', isAdmin, 'isOwner:', isOwner)
 
     if (!isAdmin && !isOwner) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         success: false, 
         error: 'Only admins can perform this action' 
       })
+      return
     }
 
     req.club = club
@@ -58,7 +71,7 @@ export const isClubAdmin = async (req: AuthRequest, res: Response, next: NextFun
   }
 }
 
-export const isClubOwner = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const isClubOwner = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?._id
     let clubId = req.params.id || req.params.clubId || req.body.clubId
@@ -75,18 +88,21 @@ export const isClubOwner = async (req: AuthRequest, res: Response, next: NextFun
     }
 
     if (!userId) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' })
+      res.status(401).json({ success: false, error: 'Not authenticated' })
+      return
     }
 
     if (!clubId) {
       console.log('❌ isClubOwner - No club ID')
-      return res.status(400).json({ success: false, error: 'Club ID required' })
+      res.status(400).json({ success: false, error: 'Club ID required' })
+      return
     }
 
     const club = await Club.findById(clubId)
     if (!club) {
       console.log('❌ isClubOwner - Club not found:', clubId)
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     const isOwner = club.ownerId?.toString() === userId.toString()
@@ -94,10 +110,11 @@ export const isClubOwner = async (req: AuthRequest, res: Response, next: NextFun
     console.log('🔍 isClubOwner - isOwner:', isOwner)
 
     if (!isOwner) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         success: false, 
         error: 'Only the owner can perform this action' 
       })
+      return
     }
 
     req.club = club
@@ -108,7 +125,7 @@ export const isClubOwner = async (req: AuthRequest, res: Response, next: NextFun
   }
 }
 
-export const isClubMember = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const isClubMember = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user?._id
 
@@ -116,7 +133,8 @@ export const isClubMember = async (req: AuthRequest, res: Response, next: NextFu
 
     if (!userId) {
       console.log('❌ isClubMember - No user ID')
-      return res.status(401).json({ success: false, error: 'Not authenticated' })
+      res.status(401).json({ success: false, error: 'Not authenticated' })
+      return
     }
 
     let clubId = null
@@ -129,7 +147,8 @@ export const isClubMember = async (req: AuthRequest, res: Response, next: NextFu
       if (discussion) {
         clubId = discussion.clubId?.toString()
       } else {
-        return res.status(404).json({ success: false, error: 'Discussion not found' })
+        res.status(404).json({ success: false, error: 'Discussion not found' })
+        return
       }
     }
     
@@ -144,20 +163,23 @@ export const isClubMember = async (req: AuthRequest, res: Response, next: NextFu
         if (discussion) {
           clubId = discussion.clubId?.toString()
         } else {
-          return res.status(404).json({ success: false, error: 'Discussion not found' })
+          res.status(404).json({ success: false, error: 'Discussion not found' })
+          return
         }
       }
     }
 
     if (!clubId) {
       console.log('❌ isClubMember - No club ID found')
-      return res.status(400).json({ success: false, error: 'Club ID required' })
+      res.status(400).json({ success: false, error: 'Club ID required' })
+      return
     }
 
     const club = await Club.findById(clubId)
     if (!club) {
       console.log('❌ isClubMember - Club not found:', clubId)
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     console.log('✅ isClubMember - Club found:', club.name)

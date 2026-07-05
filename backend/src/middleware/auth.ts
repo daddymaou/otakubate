@@ -4,9 +4,10 @@ import User from '../models/User'
 
 export interface AuthRequest extends Request {
   user?: any
+  club?: any  // ← ADDED: For club middleware
 }
 
-export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const token = req.headers.authorization?.split(' ')[1] || req.cookies?.accessToken
     
@@ -16,11 +17,12 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     
     if (!token) {
       console.log('❌ protect - No token found')
-      return res.status(401).json({ 
+      res.status(401).json({ 
         success: false, 
         message: 'Not authenticated. Please login.',
         code: 'NO_TOKEN'
       })
+      return
     }
     
     let decoded: any
@@ -30,44 +32,49 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     } catch (error: any) {
       console.log('❌ protect - JWT Error:', error.name, error.message)
       if (error.name === 'TokenExpiredError') {
-        return res.status(401).json({ 
+        res.status(401).json({ 
           success: false, 
           message: 'Session expired. Please login again.',
           code: 'TOKEN_EXPIRED'
         })
+        return
       }
       if (error.name === 'JsonWebTokenError') {
-        return res.status(401).json({ 
+        res.status(401).json({ 
           success: false, 
           message: 'Invalid token. Please login again.',
           code: 'INVALID_TOKEN'
         })
+        return
       }
-      return res.status(401).json({ 
+      res.status(401).json({ 
         success: false, 
         message: 'Authentication failed. Please login again.',
         code: 'AUTH_ERROR'
       })
+      return
     }
     
     const user = await User.findById(decoded.id).select('-password -otp -otpExpires -verificationToken -verificationOtp -verificationOtpExpires -actionOtp')
     
     if (!user) {
       console.log('❌ protect - User not found:', decoded.id)
-      return res.status(401).json({ 
+      res.status(401).json({ 
         success: false, 
         message: 'User not found. Please login again.',
         code: 'USER_NOT_FOUND'
       })
+      return
     }
     
     if (!user.isActive) {
       console.log('❌ protect - Account inactive:', decoded.id)
-      return res.status(403).json({ 
+      res.status(403).json({ 
         success: false, 
         message: 'Account is deactivated. Please contact support.',
         code: 'ACCOUNT_INACTIVE'
       })
+      return
     }
     
     console.log('✅ protect - User authenticated:', user.username || user._id)
@@ -83,7 +90,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
   }
 }
 
-export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const token = req.headers.authorization?.split(' ')[1] || req.cookies?.accessToken
     
@@ -106,13 +113,14 @@ export const optionalAuth = async (req: AuthRequest, res: Response, next: NextFu
   }
 }
 
-export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction): void => {
   if (!req.user?.isAdmin) {
-    return res.status(403).json({ 
+    res.status(403).json({ 
       success: false, 
       message: 'Admin access required',
       code: 'ADMIN_REQUIRED'
     })
+    return
   }
   next()
 }

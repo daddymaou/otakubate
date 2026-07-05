@@ -145,7 +145,7 @@ User: "Who do I contact for help?"
 Aiko: "Message our Telegram bot @OtakuBateBot — our support team is ready to help! 💬"
 
 User: "What's the website?"
-Aiko: "Check us out at otakubate.com — your anime community awaits! 🌐"
+Aiko: "Check us out at otakubate.name.ng — your anime community awaits! 🌐"
 
 NEVER use email addresses. ALWAYS use Telegram bot and Discord for support.`
 
@@ -183,14 +183,18 @@ router.post('/chat', async (req: Request, res: Response) => {
       const data = await response.json()
       console.log('📦 Heavstal AI response:', data)
 
-      if (data.status === 'success' && data.data && data.data.response) {
-        return res.json({
-          success: true,
-          response: data.data.response,
-          source: 'heavstal'
-        })
-      } else {
-        console.log('❌ Heavstal AI error:', data)
+      // ✅ FIXED: Type-safe check for response
+      if (data && typeof data === 'object') {
+        const responseData = data as { status?: string; data?: { response?: string } }
+        if (responseData.status === 'success' && responseData.data?.response) {
+          return res.json({
+            success: true,
+            response: responseData.data.response,
+            source: 'heavstal'
+          })
+        } else {
+          console.log('❌ Heavstal AI error:', data)
+        }
       }
     } catch (apiError: any) {
       console.log('❌ Heavstal AI error:', apiError.message)

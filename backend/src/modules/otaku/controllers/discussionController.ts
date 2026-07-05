@@ -9,29 +9,33 @@ const ALLOWED_REACTIONS = ['❤️', '🔥', '💀', '✨', '👀']
 // CREATE DISCUSSION
 // ============================================
 
-export const createDiscussion = async (req: AuthRequest, res: Response) => {
+export const createDiscussion = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { clubId, title, content, image } = req.body
     const userId = req.user?._id
 
     if (!clubId) {
-      return res.status(400).json({ success: false, error: 'Club ID required' })
+      res.status(400).json({ success: false, error: 'Club ID required' })
+      return
     }
 
     if (!title || !title.trim()) {
-      return res.status(400).json({ success: false, error: 'Discussion title required' })
+      res.status(400).json({ success: false, error: 'Discussion title required' })
+      return
     }
 
     const club = await Club.findById(clubId)
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     const isAdmin = club.admins?.some((a: any) => a.toString() === userId.toString())
     const isOwner = club.ownerId?.toString() === userId.toString()
 
     if (!isAdmin && !isOwner) {
-      return res.status(403).json({ success: false, error: 'Only admins can create discussions' })
+      res.status(403).json({ success: false, error: 'Only admins can create discussions' })
+      return
     }
 
     const discussion = new Discussion({
@@ -60,7 +64,7 @@ export const createDiscussion = async (req: AuthRequest, res: Response) => {
 // GET CLUB DISCUSSIONS
 // ============================================
 
-export const getClubDiscussions = async (req: AuthRequest, res: Response) => {
+export const getClubDiscussions = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { clubId } = req.params
     const { page = 1, limit = 20 } = req.query
@@ -69,7 +73,8 @@ export const getClubDiscussions = async (req: AuthRequest, res: Response) => {
 
     const club = await Club.findById(clubId)
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     const discussions = await Discussion.find({ clubId })
@@ -104,7 +109,7 @@ export const getClubDiscussions = async (req: AuthRequest, res: Response) => {
 // GET SINGLE DISCUSSION
 // ============================================
 
-export const getDiscussion = async (req: AuthRequest, res: Response) => {
+export const getDiscussion = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { discussionId } = req.params
 
@@ -117,7 +122,8 @@ export const getDiscussion = async (req: AuthRequest, res: Response) => {
       .lean()
 
     if (!discussion) {
-      return res.status(404).json({ success: false, error: 'Discussion not found' })
+      res.status(404).json({ success: false, error: 'Discussion not found' })
+      return
     }
 
     res.json({ success: true, discussion })
@@ -131,7 +137,7 @@ export const getDiscussion = async (req: AuthRequest, res: Response) => {
 // UPDATE DISCUSSION
 // ============================================
 
-export const updateDiscussion = async (req: AuthRequest, res: Response) => {
+export const updateDiscussion = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { discussionId } = req.params
     const { title, content, image } = req.body
@@ -139,19 +145,22 @@ export const updateDiscussion = async (req: AuthRequest, res: Response) => {
 
     const discussion = await Discussion.findById(discussionId)
     if (!discussion) {
-      return res.status(404).json({ success: false, error: 'Discussion not found' })
+      res.status(404).json({ success: false, error: 'Discussion not found' })
+      return
     }
 
     const club = await Club.findById(discussion.clubId)
     if (!club) {
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     const isAdmin = club.admins?.some((a: any) => a.toString() === userId.toString())
     const isOwner = club.ownerId?.toString() === userId.toString()
 
     if (!isAdmin && !isOwner) {
-      return res.status(403).json({ success: false, error: 'Only admins can update discussions' })
+      res.status(403).json({ success: false, error: 'Only admins can update discussions' })
+      return
     }
 
     if (title !== undefined) discussion.title = title
@@ -169,10 +178,10 @@ export const updateDiscussion = async (req: AuthRequest, res: Response) => {
 }
 
 // ============================================
-// DELETE DISCUSSION - FIXED
+// DELETE DISCUSSION
 // ============================================
 
-export const deleteDiscussion = async (req: AuthRequest, res: Response) => {
+export const deleteDiscussion = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { discussionId } = req.params
     const userId = req.user?._id
@@ -183,7 +192,8 @@ export const deleteDiscussion = async (req: AuthRequest, res: Response) => {
     const discussion = await Discussion.findById(discussionId)
     if (!discussion) {
       console.log('❌ Discussion not found')
-      return res.status(404).json({ success: false, error: 'Discussion not found' })
+      res.status(404).json({ success: false, error: 'Discussion not found' })
+      return
     }
 
     console.log('📋 Discussion found:', {
@@ -196,7 +206,8 @@ export const deleteDiscussion = async (req: AuthRequest, res: Response) => {
     const club = await Club.findById(discussion.clubId)
     if (!club) {
       console.log('❌ Club not found')
-      return res.status(404).json({ success: false, error: 'Club not found' })
+      res.status(404).json({ success: false, error: 'Club not found' })
+      return
     }
 
     // 3. Check permissions
@@ -208,7 +219,8 @@ export const deleteDiscussion = async (req: AuthRequest, res: Response) => {
 
     if (!isAdmin && !isOwner && !isAuthor) {
       console.log('❌ User cannot delete this discussion')
-      return res.status(403).json({ success: false, error: 'You cannot delete this discussion' })
+      res.status(403).json({ success: false, error: 'You cannot delete this discussion' })
+      return
     }
 
     // 4. Delete the discussion
@@ -231,19 +243,21 @@ export const deleteDiscussion = async (req: AuthRequest, res: Response) => {
 // ADD REACTION
 // ============================================
 
-export const addReaction = async (req: AuthRequest, res: Response) => {
+export const addReaction = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { discussionId } = req.params
     const { emoji } = req.body
     const userId = req.user?._id
 
     if (!ALLOWED_REACTIONS.includes(emoji)) {
-      return res.status(400).json({ success: false, error: 'Invalid emoji' })
+      res.status(400).json({ success: false, error: 'Invalid emoji' })
+      return
     }
 
     const discussion = await Discussion.findById(discussionId)
     if (!discussion) {
-      return res.status(404).json({ success: false, error: 'Discussion not found' })
+      res.status(404).json({ success: false, error: 'Discussion not found' })
+      return
     }
 
     await Discussion.updateOne(
@@ -274,7 +288,7 @@ export const addReaction = async (req: AuthRequest, res: Response) => {
 // REMOVE REACTION
 // ============================================
 
-export const removeReaction = async (req: AuthRequest, res: Response) => {
+export const removeReaction = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { discussionId, emoji } = req.params
     const userId = req.user?._id

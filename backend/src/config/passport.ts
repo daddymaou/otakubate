@@ -37,8 +37,8 @@ export const setupPassport = () => {
             return done(new Error('No email provided by Google'), undefined)
           }
           
-          // Check if user exists by email
-          let user = await User.findOne({ email: profile.emails[0].value })
+          // ✅ FIX: Added type assertion
+          let user = await (User as any).findOne({ email: profile.emails[0].value })
           
           if (user) {
             console.log('✅ Existing user found:', user.email)
@@ -68,7 +68,8 @@ export const setupPassport = () => {
           let baseUsername = profile.emails[0].value.split('@')[0]
           let username = baseUsername
           let counter = 1
-          while (await User.findOne({ username })) {
+          // ✅ FIX: Added type assertion
+          while (await (User as any).findOne({ username })) {
             username = `${baseUsername}${counter}`
             counter++
           }
@@ -77,7 +78,8 @@ export const setupPassport = () => {
           const randomAvatar = defaultAvatars[Math.floor(Math.random() * defaultAvatars.length)]
           const randomBanner = defaultBanners[Math.floor(Math.random() * defaultBanners.length)]
           
-          user = await User.create({
+          // ✅ FIX: Added type assertion
+          user = await (User as any).create({
             username,
             email: profile.emails[0].value,
             displayName: profile.displayName || profile.name?.givenName || username,
@@ -118,7 +120,8 @@ export const setupPassport = () => {
   
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await User.findById(id)
+      // ✅ FIX: Added type assertion
+      const user = await (User as any).findById(id)
       done(null, user)
     } catch (error) {
       done(error, null)

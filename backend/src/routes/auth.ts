@@ -12,7 +12,7 @@ import {
   sendActionOTPEmail,
 } from '../services/email'
 import { protect, AuthRequest } from '../middleware/auth'
-import { authLimiter } from '../middleware/rateLimiter'  // ✅ Fixed import
+import { authLimiter } from '../middleware/rateLimiter'
 
 const router = Router()
 
@@ -503,6 +503,7 @@ router.get('/google/callback',
       const fe = process.env.FRONTEND_URL || 'http://localhost:5173'
       
       console.log('🔐 Redirecting to Google callback')
+      // ✅ FIXED: Redirect to frontend Google callback with token
       res.redirect(`${fe}/auth/google/callback?token=${token}&refreshToken=${refresh}`)
     } catch (err: any) {
       console.error('❌ Google callback error:', err.message)

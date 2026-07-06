@@ -111,7 +111,25 @@ setupSocket(io)
 // CORS - MOST PERMISSIVE CONFIGURATION
 // ============================================
 const corsOptions = {
-  origin: true,
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    const allowedOrigins = [
+      'https://otakubate.name.ng',
+      'https://www.otakubate.name.ng',
+      'https://otakubate.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ]
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      console.log('❌ CORS blocked origin:', origin)
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'cache-control', 'Cache-Control', 'x-cache-control'],
@@ -125,6 +143,9 @@ app.use(cors(corsOptions))
 // ============================================
 // EXPRESS MIDDLEWARE
 // ============================================
+// Trust proxy for rate limiter behind proxy (Render)
+app.set('trust proxy', 1)
+
 app.use(helmet({ crossOriginEmbedderPolicy: false }))
 app.use(compression())
 app.use(morgan('dev'))

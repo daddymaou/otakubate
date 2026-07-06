@@ -6,7 +6,8 @@ import api from '../../lib/api'
 import Spinner from '../../components/ui/Spinner'
 import toast from 'react-hot-toast'
 
-const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || ''
+// ✅ FIXED: Hardcoded backend URL
+const API_BASE = 'https://otakubate.onrender.com'
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -62,18 +63,14 @@ export default function Register() {
       }, 1000)
     },
     onError: (err: any) => {
-      // Check if user already exists but not verified
       if (err.response?.data?.message?.toLowerCase().includes('already registered')) {
         toast.error('This email is already registered but not verified. Please check your email or request a new code.')
-        // Optionally navigate to verify page
-        // navigate('/verify-otp', { state: { email: form.email } })
       } else {
         toast.error(err.response?.data?.message || 'Registration failed')
       }
     }
   })
 
-  // FIXED: Resend OTP mutation
   const resendOtpMutation = useMutation({
     mutationFn: () => api.post('/auth/resend-verification-otp', { 
       email: tempEmail || form.email,
@@ -98,14 +95,12 @@ export default function Register() {
     onError: (err: any) => {
       const errorMsg = err.response?.data?.message || 'Failed to resend code'
       
-      // If user is already verified, redirect to login
       if (errorMsg.toLowerCase().includes('already verified')) {
         toast.success('Email already verified! Please login.')
         navigate('/login')
         return
       }
       
-      // If email not found or user doesn't exist, go back to registration
       if (errorMsg.toLowerCase().includes('not found') || errorMsg.toLowerCase().includes('no user')) {
         toast.error('No account found with this email. Please register first.')
         setShowOtpInput(false)
@@ -140,7 +135,6 @@ export default function Register() {
       
       if (errorMsg.toLowerCase().includes('expired')) {
         toast.error('Code expired. Request a new one.')
-        // Auto resend
         setTimeout(() => resendOtpMutation.mutate(), 1000)
       } else {
         toast.error(errorMsg)

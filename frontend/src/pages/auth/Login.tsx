@@ -7,7 +7,8 @@ import { useAuthStore } from '../../stores/authStore'
 import Spinner from '../../components/ui/Spinner'
 import toast from 'react-hot-toast'
 
-const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || ''
+// ✅ FIXED: Hardcoded backend URL (was using env var that failed on custom domain)
+const API_BASE = 'https://otakubate.onrender.com'
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -39,7 +40,7 @@ export default function Login() {
     }
   }, [googleError])
 
-  // --- FIX: Resend OTP mutation ---
+  // Resend OTP mutation
   const resendOtpMutation = useMutation({
     mutationFn: async () => {
       const response = await api.post('/auth/resend-verification-otp', { 
@@ -80,22 +81,22 @@ export default function Login() {
       const errorData = err.response?.data
       const message = errorData?.message || 'Login failed'
       
-      // --- FIX: Handle unverified user ---
+      // Handle unverified user
       if (errorData?.requiresVerification) {
         setIsVerificationPending(true)
         setPendingEmail(errorData.email || email)
         setPendingUserId(errorData.userId)
         toast.error(message || 'Please verify your email')
       } 
-      // --- FIX: Handle Google user ---
+      // Handle Google user
       else if (errorData?.isGoogleUser) {
         toast.error('This account uses Google Sign-In. Please continue with Google.')
       }
-      // --- FIX: Handle rate limit ---
+      // Handle rate limit
       else if (message.includes('Too many auth attempts')) {
         toast.error('Too many login attempts. Please wait 15 minutes and try again.')
       }
-      // --- FIX: Handle other errors ---
+      // Handle other errors
       else {
         toast.error(message)
       }
@@ -112,7 +113,6 @@ export default function Login() {
       toast.error('Please enter email and password')
       return
     }
-    // Reset verification state on new attempt
     setIsVerificationPending(false)
     loginMutation.mutate()
   }
@@ -149,7 +149,7 @@ export default function Login() {
           <p className="text-sm mt-1" style={{ color: '#999' }}>Sign in to your account</p>
         </div>
 
-        {/* --- FIX: Verification Pending Banner --- */}
+        {/* Verification Pending Banner */}
         {isVerificationPending && (
           <div className="mb-4 p-4 rounded-xl" style={{ background: 'rgba(230,57,70,0.08)', border: '1px solid rgba(230,57,70,0.15)' }}>
             <p className="text-sm font-medium" style={{ color: '#E63946' }}>

@@ -51,7 +51,7 @@ const WebsiteIcon = () => (
 // ============================================
 // CONFIG
 // ============================================
-const AIKO_API_ENDPOINT = '/api/ai/chat'
+const AIKO_API_ENDPOINT = 'https://otakubate.onrender.com/api/ai/chat'
 const TELEGRAM_BOT = 'https://t.me/OtakuBateBot'
 const TELEGRAM_CHANNEL = 'https://t.me/otakubate'
 const DISCORD_INVITE = 'https://discord.gg/GASuyBbtV'

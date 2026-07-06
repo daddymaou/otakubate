@@ -37,9 +37,48 @@ setupPassport()
 const app = express()
 const httpServer = createServer(app)
 
+// ============================================
+// CORS - PROPER CONFIGURATION USING ENV
+// ============================================
+const allowedOrigins = [
+  'https://otakubate.name.ng',
+  'https://www.otakubate.name.ng',
+  'https://otakubate.vercel.app',
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000'
+].filter(Boolean) // Remove undefined values
+
+console.log('✅ CORS allowed origins:', allowedOrigins)
+
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true)
+    }
+    
+    // Check if origin is allowed
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      console.log('❌ CORS blocked origin:', origin)
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'cache-control'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+}
+
 export const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || '*',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -108,21 +147,12 @@ export function setupSocket(io: Server) {
 setupSocket(io)
 
 // ============================================
-// CORS - SIMPLIFIED FIX
-// ============================================
-app.use(cors({
-  origin: true,  // Allow all origins
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'cache-control'],
-}))
-
-// ============================================
 // EXPRESS MIDDLEWARE
 // ============================================
 app.use(helmet({ crossOriginEmbedderPolicy: false }))
 app.use(compression())
 app.use(morgan('dev'))
+app.use(cors(corsOptions))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(cookieParser())
@@ -201,4 +231,4 @@ httpServer.listen(PORT, () => {
 })
 
 export default app
-export { onlineUsers
+export { onlineUsers }

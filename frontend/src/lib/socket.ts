@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client'
 
-// ✅ DIRECT: Use Render URL directly
-const SOCKET_URL = 'https://otakubate.onrender.com'
+// ✅ PROPER WAY: Use environment variable with fallback
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'
 
 // Singleton socket instance with better reconnection settings
 export const socket: Socket = io(SOCKET_URL, {

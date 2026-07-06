@@ -3,10 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Send, MoreVertical, 
-  Smile, MessageCircle, ChevronLeft, 
+  MessageCircle, ChevronLeft, 
   Check, CheckCheck,
   UserX, Ban, User, Unlock, Lock,
-  UserMinus, Loader2, X
+  UserMinus, Loader2
 } from 'lucide-react'
 import api from '../lib/api'
 import { useAuthStore } from '../stores/authStore'
@@ -36,7 +36,6 @@ export default function Messages() {
   const [isBlockedByUser, setIsBlockedByUser] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [blockCheckLoading, setBlockCheckLoading] = useState(true)
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -265,7 +264,6 @@ export default function Messages() {
     }
     sendTypingStop({ receiverId: userId!, senderId: me!._id })
     setIsTyping(false)
-    setShowEmojiPicker(false)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -304,12 +302,6 @@ export default function Messages() {
         sendTypingStop({ receiverId: userId!, senderId: me!._id })
       }, 2000)
     }
-  }
-
-  const handleEmojiSelect = (emoji: string) => {
-    setMsg(prev => prev + emoji)
-    inputRef.current?.focus()
-    setShowEmojiPicker(false)
   }
 
   const formatTime = (dateString: string) => {
@@ -434,7 +426,7 @@ export default function Messages() {
           )}
         </div>
 
-        {/* ===== DROPDOWN MENU - FIXED ===== */}
+        {/* ===== DROPDOWN MENU ===== */}
         <div className="flex gap-1 relative" ref={menuRef}>
           <button 
             onClick={() => setShowMenu(!showMenu)}
@@ -535,7 +527,7 @@ export default function Messages() {
       )}
 
       {/* ========== MESSAGES AREA - SCROLLABLE WITH PROPER PADDING ========== */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-4 py-4 pb-24">
         {msgsLoading ? (
           <div className="flex justify-center py-12">
             <Spinner size={32} />
@@ -666,51 +658,6 @@ export default function Messages() {
       {/* ========== INPUT - STICKY BOTTOM ========== */}
       <div className="flex-shrink-0 p-3 border-t" style={{ background: 'rgba(255, 248, 238, 0.95)', borderColor: 'rgba(230,57,70,0.08)' }}>
         <div className="flex gap-2 items-end max-w-4xl mx-auto">
-          {/* Emoji Picker Button */}
-          <div className="relative">
-            <button 
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className="p-2 rounded-lg hover:bg-black/5 transition-colors flex-shrink-0 active:scale-95"
-              style={{ color: '#666' }}
-              disabled={isBlocked || isBlockedByUser}
-            >
-              <Smile size={20} />
-            </button>
-            {showEmojiPicker && (
-              <div 
-                className="absolute bottom-full left-0 mb-2 z-50"
-                style={{ 
-                  background: '#fff',
-                  borderRadius: '16px',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                  border: '1px solid rgba(230,57,70,0.1)'
-                }}
-              >
-                <div className="flex items-center justify-between p-2 border-b" style={{ borderColor: 'rgba(230,57,70,0.08)' }}>
-                  <span className="text-xs font-medium" style={{ color: '#1a1a2e' }}>Emojis</span>
-                  <button 
-                    onClick={() => setShowEmojiPicker(false)}
-                    className="p-1 rounded hover:bg-black/5"
-                  >
-                    <X size={14} style={{ color: '#999' }} />
-                  </button>
-                </div>
-                <div className="p-2 grid grid-cols-6 gap-1 max-h-60 overflow-y-auto">
-                  {['😊', '😂', '❤️', '🔥', '👀', '✨', '🌸', '🎌', '💀', '🥺', '🙏', '💯', '🤔', '👌', '😭', '🥰', '🤝', '⚡', '🎉', '💪', '🤩', '😎', '🫶', '🌟'].map((emoji) => (
-                    <button
-                      key={emoji}
-                      onClick={() => handleEmojiSelect(emoji)}
-                      className="w-8 h-8 rounded hover:bg-black/5 transition-colors text-xl flex items-center justify-center"
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Input Field */}
           <div className="flex-1 relative">
             <input 
               ref={inputRef}

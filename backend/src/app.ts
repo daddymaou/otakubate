@@ -61,7 +61,6 @@ export function setupSocket(io: Server) {
         if (!userId) return
         onlineUsers.set(userId, socket.id)
         socket.data.userId = userId
-        // ✅ FIX: Added type assertion
         await (User as any).findByIdAndUpdate(userId, {
           isOnline: true,
           lastSeen: new Date()
@@ -78,7 +77,6 @@ export function setupSocket(io: Server) {
         const userId = socket.data.userId
         if (userId && onlineUsers.has(userId)) {
           onlineUsers.delete(userId)
-          // ✅ FIX: Added type assertion
           await (User as any).findByIdAndUpdate(userId, {
             isOnline: false,
             lastSeen: new Date()
@@ -110,35 +108,14 @@ export function setupSocket(io: Server) {
 setupSocket(io)
 
 // ============================================
-// CORS CONFIGURATION - FIXED
+// CORS - SIMPLIFIED FIX
 // ============================================
-const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    const allowedOrigins = [
-      'https://otakubate.name.ng',
-      'https://www.otakubate.name.ng',
-      'https://otakubate.vercel.app',
-      'http://localhost:5173',
-      'http://localhost:3000'
-    ]
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true)
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      console.log('❌ CORS blocked origin:', origin)
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+app.use(cors({
+  origin: true,  // Allow all origins
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-}
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'cache-control'],
+}))
 
 // ============================================
 // EXPRESS MIDDLEWARE
@@ -146,7 +123,6 @@ const corsOptions = {
 app.use(helmet({ crossOriginEmbedderPolicy: false }))
 app.use(compression())
 app.use(morgan('dev'))
-app.use(cors(corsOptions)) // ✅ FIXED: Using corsOptions instead of simple config
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(cookieParser())
@@ -225,4 +201,4 @@ httpServer.listen(PORT, () => {
 })
 
 export default app
-export { onlineUsers }
+export { onlineUsers

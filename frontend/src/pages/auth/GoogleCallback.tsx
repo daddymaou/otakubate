@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
+import api from '../../lib/api'  // ✅ ADD THIS IMPORT
 import Spinner from '../../components/ui/Spinner'
 import toast from 'react-hot-toast'
 
@@ -35,22 +36,19 @@ export default function GoogleCallback() {
       
       console.log('✅ Token saved, fetching user data...')
       
-      fetch('/api/auth/me', {
+      // ✅ FIXED: Use api instance instead of fetch
+      api.get('/auth/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-        .then(res => {
-          console.log('📡 /me response status:', res.status)
-          return res.json()
-        })
-        .then(data => {
-          console.log('📡 /me response data:', data)
-          if (data.success && data.user) {
-            console.log('✅ Setting user in store:', data.user.username)
-            setAuth(data.user, token, refreshToken)
+        .then(response => {
+          console.log('📡 /me response:', response.data)
+          if (response.data.success && response.data.user) {
+            console.log('✅ Setting user in store:', response.data.user.username)
+            setAuth(response.data.user, token, refreshToken)
             toast.success('Logged in with Google!')
             navigate('/feed')
           } else {
-            console.error('❌ No user in response:', data)
+            console.error('❌ No user in response:', response.data)
             throw new Error('Failed to get user data')
           }
         })

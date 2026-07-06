@@ -108,14 +108,22 @@ export function setupSocket(io: Server) {
 setupSocket(io)
 
 // ============================================
-// CORS - SIMPLEST FIX (Allow All)
+// CORS - MOST PERMISSIVE CONFIGURATION
 // ============================================
-app.use(cors({
+const corsOptions = {
   origin: true,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: '*',
-}))
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'cache-control', 'Cache-Control', 'x-cache-control'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+}
+
+app.use(cors(corsOptions))
+
+// Explicitly handle preflight requests
+app.options('*', cors(corsOptions))
 
 // ============================================
 // EXPRESS MIDDLEWARE

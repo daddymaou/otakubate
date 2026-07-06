@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client'
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || ''
+// ✅ FIX: Use full URL from environment variable
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000'
 
 // Singleton socket instance with better reconnection settings
 export const socket: Socket = io(SOCKET_URL, {

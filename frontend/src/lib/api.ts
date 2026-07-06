@@ -1,8 +1,11 @@
 import axios from 'axios'
 import { useAuthStore } from '../stores/authStore'
 
+// ✅ FIX: Use the full URL from environment variable
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   timeout: 30000,
 })
@@ -99,8 +102,10 @@ api.interceptors.response.use(
       isRefreshing = true
       
       try {
+        // ✅ FIX: Use the same base URL for refresh
+        const refreshUrl = `${API_BASE_URL}/auth/refresh`
         const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL || '/api'}/auth/refresh`,
+          refreshUrl,
           { refreshToken },
           { timeout: 5000 }
         )

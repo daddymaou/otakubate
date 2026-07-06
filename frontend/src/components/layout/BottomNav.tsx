@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Home, Tv, Users, MessageCircle, Settings, Plus, Bell, Compass } from 'lucide-react'
+import { Home, Tv, Users, MessageCircle, Settings, Plus, Bell, Compass, X } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import api from '../../lib/api'
 import { useAuthStore } from '../../stores/authStore'
-import NotificationBell from '../notifications/NotificationBell'
 
 const links = [
   { to: '/clubs', icon: Users, label: 'Crew' },
@@ -21,7 +20,7 @@ export default function ExpandableNav() {
   const navRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
-  // Fetch message unread count for badge - OPTIMIZED to prevent 429
+  // Fetch message unread count for badge
   const { data: msgData } = useQuery({
     queryKey: ['messages', 'unread-count'],
     queryFn: async () => {
@@ -95,26 +94,26 @@ export default function ExpandableNav() {
         @keyframes fadeInUp {
           from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(20px) scale(0.95);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
         }
         @keyframes fadeOutDown {
           from {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
           to {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(20px) scale(0.95);
           }
         }
         @keyframes scaleIn {
           from {
-            transform: scale(0.95);
+            transform: scale(0.8);
             opacity: 0;
           }
           to {
@@ -128,8 +127,24 @@ export default function ExpandableNav() {
             opacity: 1;
           }
           to {
-            transform: scale(0.95);
+            transform: scale(0.8);
             opacity: 0;
+          }
+        }
+        @keyframes rotateIn {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(90deg);
+          }
+        }
+        @keyframes rotateOut {
+          from {
+            transform: rotate(90deg);
+          }
+          to {
+            transform: rotate(0deg);
           }
         }
         
@@ -138,6 +153,7 @@ export default function ExpandableNav() {
         }
         .expanded-pill {
           animation: scaleIn 0.25s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+          transform-origin: bottom center;
         }
         .expanded-pill.closing {
           animation: scaleOut 0.2s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
@@ -148,15 +164,18 @@ export default function ExpandableNav() {
         .nav-items.closing {
           animation: fadeOutDown 0.2s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
         }
+        .fab-button {
+          transition: all 0.2s ease;
+        }
         .fab-button:active {
-          transform: scale(0.92);
+          transform: scale(0.88);
         }
         .nav-item {
           transition: all 0.15s ease;
           position: relative;
         }
         .nav-item:active {
-          transform: scale(0.92);
+          transform: scale(0.88);
         }
         .handle-bar:active {
           transform: scaleY(1.5);
@@ -168,16 +187,22 @@ export default function ExpandableNav() {
         .pulse-dot {
           animation: pulse-dot 1.5s ease-in-out infinite;
         }
+        .icon-rotate {
+          transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+        }
+        .icon-rotate.open {
+          transform: rotate(45deg);
+        }
       `}</style>
 
-      <div ref={navRef} className="md:hidden fixed bottom-6 left-0 right-0 z-30 flex justify-center fab-container">
+      <div ref={navRef} className="md:hidden fixed bottom-6 left-0 right-0 z-50 flex justify-center fab-container pointer-events-none">
         {isExpanded ? (
           /* Expanded state - full width pill with icons + handle */
           <div 
-            className={`expanded-pill mx-4 rounded-2xl backdrop-blur-xl overflow-hidden ${isClosing ? 'closing' : ''}`}
+            className={`expanded-pill mx-4 rounded-2xl backdrop-blur-xl overflow-hidden pointer-events-auto ${isClosing ? 'closing' : ''}`}
             style={{
               background: 'rgba(255, 248, 238, 0.95)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
               border: '1px solid rgba(230, 57, 70, 0.1)',
               maxWidth: '480px',
               width: 'calc(100% - 32px)'
@@ -226,19 +251,19 @@ export default function ExpandableNav() {
           /* Closed state - small circular button with + */
           <button
             onClick={() => setIsExpanded(true)}
-            className="fab-button flex items-center justify-center rounded-full backdrop-blur-xl transition-all duration-150 hover:scale-105 active:scale-95 relative"
+            className="fab-button flex items-center justify-center rounded-full backdrop-blur-xl transition-all duration-200 hover:scale-105 active:scale-95 relative pointer-events-auto shadow-lg"
             style={{
               background: 'rgba(255, 248, 238, 0.95)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
               border: '1px solid rgba(230, 57, 70, 0.2)',
-              width: '52px',
-              height: '52px',
+              width: '56px',
+              height: '56px',
               color: '#E63946'
             }}
           >
-            <Plus size={24} strokeWidth={1.8} />
+            <Plus size={26} strokeWidth={2} className="icon-rotate" />
             {msgUnreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[9px] font-bold flex items-center justify-center pulse-dot" style={{ background: '#3B82F6', color: '#fff' }}>
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center pulse-dot" style={{ background: '#3B82F6', color: '#fff' }}>
                 {msgUnreadCount > 99 ? '99+' : msgUnreadCount}
               </span>
             )}

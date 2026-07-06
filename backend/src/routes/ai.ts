@@ -150,7 +150,7 @@ Aiko: "Check us out at otakubate.name.ng — your anime community awaits! 🌐"
 NEVER use email addresses. ALWAYS use Telegram bot and Discord for support.`
 
 // ============================================
-// AI CHAT ENDPOINT
+// AI CHAT ENDPOINT - IMPROVED
 // ============================================
 
 router.post('/chat', async (req: Request, res: Response) => {
@@ -167,6 +167,7 @@ router.post('/chat', async (req: Request, res: Response) => {
     // Try Heavstal AI API
     try {
       console.log('📡 Trying Heavstal AI...')
+      console.log('📡 Message:', message.trim())
       
       const response = await fetch(HEAVSTAL_API_URL, {
         method: 'POST',
@@ -181,20 +182,50 @@ router.post('/chat', async (req: Request, res: Response) => {
       })
 
       const data = await response.json()
-      console.log('📦 Heavstal AI response:', data)
+      console.log('📦 Heavstal AI raw response:', JSON.stringify(data, null, 2))
 
-      // ✅ FIXED: Type-safe check for response
-      if (data && typeof data === 'object') {
-        const responseData = data as { status?: string; data?: { response?: string } }
-        if (responseData.status === 'success' && responseData.data?.response) {
-          return res.json({
-            success: true,
-            response: responseData.data.response,
-            source: 'heavstal'
-          })
-        } else {
-          console.log('❌ Heavstal AI error:', data)
-        }
+      // 🔧 FIXED: Try multiple response formats
+      let aiResponse = null
+
+      // Format 1: { status: 'success', data: { response: '...' } }
+      if (data?.status === 'success' && data?.data?.response) {
+        aiResponse = data.data.response
+        console.log('✅ Format 1 matched')
+      }
+      // Format 2: { success: true, response: '...' }
+      else if (data?.success === true && data?.response) {
+        aiResponse = data.response
+        console.log('✅ Format 2 matched')
+      }
+      // Format 3: { response: '...' }
+      else if (data?.response) {
+        aiResponse = data.response
+        console.log('✅ Format 3 matched')
+      }
+      // Format 4: { message: '...' }
+      else if (data?.message) {
+        aiResponse = data.message
+        console.log('✅ Format 4 matched')
+      }
+      // Format 5: { content: '...' }
+      else if (data?.content) {
+        aiResponse = data.content
+        console.log('✅ Format 5 matched')
+      }
+      // Format 6: { data: '...' }
+      else if (data?.data && typeof data.data === 'string') {
+        aiResponse = data.data
+        console.log('✅ Format 6 matched')
+      }
+
+      if (aiResponse && typeof aiResponse === 'string' && aiResponse.trim().length > 0) {
+        return res.json({
+          success: true,
+          response: aiResponse,
+          source: 'heavstal'
+        })
+      } else {
+        console.log('❌ No valid response from Heavstal AI, using fallback')
       }
     } catch (apiError: any) {
       console.log('❌ Heavstal AI error:', apiError.message)
@@ -211,7 +242,8 @@ router.post('/chat', async (req: Request, res: Response) => {
     console.error('AI chat error:', error.message)
     return res.json({
       success: true,
-      response: "I'm having trouble right now 🌸 Please message @OtakuBateBot on Telegram for help! 🤖"
+      response: "I'm having trouble right now 🌸 Please message @OtakuBateBot on Telegram for help! 🤖",
+      source: 'error'
     })
   }
 })

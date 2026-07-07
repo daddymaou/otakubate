@@ -24,6 +24,7 @@
     "react-helmet-async": "^3.0.0",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.23.1",
+    "recharts": "^3.9.2",
     "socket.io-client": "^4.7.5",
     "video.js": "^8.23.8",
     "zustand": "^4.5.4"

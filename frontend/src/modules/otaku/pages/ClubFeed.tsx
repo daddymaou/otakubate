@@ -121,37 +121,24 @@ export default function ClubFeed() {
     
     setIsDeleting(true)
     try {
-      const token = localStorage.getItem('token')
       const clubId = club?._id
       
-      const response = await fetch(`http://localhost:5000/api/otaku/clubs/${clubId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      // ✅ FIXED: Use api instance instead of fetch with localhost
+      await api.delete(`/otaku/clubs/${clubId}`)
       
-      if (response.ok) {
-        toast.success('Club deleted successfully')
-        setShowDeleteConfirm(false)
-        setConfirmUsername('')
-        setIsDeleting(false)
-        window.location.href = '/clubs'
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to delete club')
-        setIsDeleting(false)
-      }
-    } catch (error) {
+      toast.success('Club deleted successfully')
+      setShowDeleteConfirm(false)
+      setConfirmUsername('')
+      setIsDeleting(false)
+      window.location.href = '/clubs'
+    } catch (error: any) {
       console.error('Delete error:', error)
-      toast.error('Failed to delete club')
+      toast.error(error.response?.data?.error || 'Failed to delete club')
       setIsDeleting(false)
     }
   }
 
   const handleTransferOwnership = () => {
-    // Get admins from members list
     const adminList = members?.filter((m: any) => 
       club?.admins?.includes(m._id) && m._id !== club?.ownerId
     ) || []
@@ -269,6 +256,7 @@ export default function ClubFeed() {
                 </button>
               )}
               
+              {/* ✅ FIXED: Dropdown Menu with proper overflow and positioning */}
               <div className="relative">
                 <button
                   onClick={() => setShowMenu(!showMenu)}
@@ -278,8 +266,12 @@ export default function ClubFeed() {
                 </button>
                 {showMenu && (
                   <div 
-                    className="absolute right-0 top-full mt-1 rounded-xl shadow-lg border py-1 min-w-[180px] z-10"
-                    style={{ background: '#1a1a2e', borderColor: 'rgba(255,255,255,0.06)' }}
+                    className="absolute right-0 bottom-full mb-1 rounded-xl shadow-lg border py-1 min-w-[180px] z-50"
+                    style={{ 
+                      background: '#1a1a2e', 
+                      borderColor: 'rgba(255,255,255,0.06)',
+                      overflow: 'visible'
+                    }}
                   >
                     {getMenuItems().map((item, index) => (
                       <button

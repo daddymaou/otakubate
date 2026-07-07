@@ -7,6 +7,7 @@ import {
 import Avatar from '../../../components/ui/Avatar'
 import toast from 'react-hot-toast'
 import api from '../../../lib/api'
+import Spinner from '../../../components/ui/Spinner'
 
 interface ClubSettingsProps {
   club: any
@@ -127,36 +128,24 @@ export default function ClubSettings({
     
     setIsDeleting(true)
     try {
-      const token = localStorage.getItem('token')
       const clubId = club?._id
       
-      const response = await fetch(`http://localhost:5000/api/otaku/clubs/${clubId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      // ✅ FIXED: Use api instance instead of fetch with localhost
+      await api.delete(`/otaku/clubs/${clubId}`)
       
-      if (response.ok) {
-        toast.success('Club deleted successfully')
-        setShowDeleteConfirm(false)
-        setConfirmUsername('')
-        setIsDeleting(false)
-        onClose()
-        if (onDelete) {
-          onDelete()
-        } else {
-          window.location.href = '/clubs'
-        }
+      toast.success('Club deleted successfully')
+      setShowDeleteConfirm(false)
+      setConfirmUsername('')
+      setIsDeleting(false)
+      onClose()
+      if (onDelete) {
+        onDelete()
       } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to delete club')
-        setIsDeleting(false)
+        window.location.href = '/clubs'
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Delete error:', error)
-      toast.error('Failed to delete club')
+      toast.error(error.response?.data?.error || 'Failed to delete club')
       setIsDeleting(false)
     }
   }
@@ -369,7 +358,7 @@ export default function ClubSettings({
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting || !name.trim()}
-                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   style={{ background: '#E63946' }}
                 >
                   {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : 'Save Changes'}
@@ -380,7 +369,7 @@ export default function ClubSettings({
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - Centered */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(26,26,46,0.85)', backdropFilter: 'blur(20px)' }} onClick={() => setShowDeleteConfirm(false)}>
           <div className="relative w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
@@ -401,12 +390,17 @@ export default function ClubSettings({
                 disabled={isDeleting}
               />
               <div className="flex gap-3">
-                <button onClick={() => { setShowDeleteConfirm(false); setConfirmUsername('') }} className="flex-1 py-2 rounded-xl text-sm font-medium transition-all hover:bg-black/5" style={{ color: '#666' }} disabled={isDeleting}>
+                <button 
+                  onClick={() => { setShowDeleteConfirm(false); setConfirmUsername('') }} 
+                  className="flex-1 py-2 rounded-xl text-sm font-medium transition-all hover:bg-black/5" 
+                  style={{ color: '#666' }} 
+                  disabled={isDeleting}
+                >
                   Cancel
                 </button>
                 <button 
                   onClick={handleConfirmDelete} 
-                  className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50" 
+                  className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2" 
                   style={{ background: '#E63946' }} 
                   disabled={confirmUsername !== club.name || isDeleting}
                 >

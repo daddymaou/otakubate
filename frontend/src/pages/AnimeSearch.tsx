@@ -13,7 +13,7 @@ import toast from 'react-hot-toast'
 // API
 // ============================================
 
-const API_BASE = '/api/anime'
+const API_BASE = 'https://otakubate.onrender.com/api/anime'
 
 const CATEGORIES = [
   { label: 'Trending', value: 'trending', icon: Flame },

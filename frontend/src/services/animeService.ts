@@ -1,6 +1,6 @@
 // frontend/src/services/animeService.ts
 
-const API_BASE = '/api/anime'
+const API_BASE = 'https://otakubate.onrender.com/api/anime'
 
 /**
  * Generate a URL-friendly slug from a title

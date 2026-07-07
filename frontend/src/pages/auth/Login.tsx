@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { Mail, Lock, Eye, EyeOff, ArrowRight, RefreshCw } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, RefreshCw, Home } from 'lucide-react'
 import api from '../../lib/api'
 import { useAuthStore } from '../../stores/authStore'
 import Spinner from '../../components/ui/Spinner'
@@ -137,7 +137,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'linear-gradient(135deg, #FFF8EE 0%, #FFE8E8 100%)' }}>
-      <div className="max-w-md w-full rounded-2xl p-8" style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', border: '1px solid rgba(230,57,70,0.08)' }}>
+      <div className="max-w-md w-full rounded-2xl p-8 relative" style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', border: '1px solid rgba(230,57,70,0.08)' }}>
+        
+        {/* 🔥 Home Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4 p-2 rounded-xl hover:bg-black/5 transition-all duration-200 hover:scale-105"
+          style={{ color: '#666' }}
+          title="Go to Home"
+        >
+          <Home size={20} />
+        </button>
+
         <div className="text-center mb-6">
           <img 
             src="https://files.catbox.moe/8anicu.png" 

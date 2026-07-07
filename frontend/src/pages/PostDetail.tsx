@@ -26,6 +26,9 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
   const [editContent, setEditContent] = useState(comment.content)
   const [showReplyInput, setShowReplyInput] = useState(false)
   const [replyContent, setReplyContent] = useState('')
+  const [isLiking, setIsLiking] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isReplying, setIsReplying] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   
   const isCommentAuthor = user?._id === comment.author?._id
@@ -50,11 +53,28 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
   }
 
   const handleReply = () => {
-    if (replyContent.trim()) {
+    if (replyContent.trim() && !isReplying) {
+      setIsReplying(true)
       onReply(comment._id, replyContent)
       setReplyContent('')
       setShowReplyInput(false)
+      // Reset after a moment
+      setTimeout(() => setIsReplying(false), 500)
     }
+  }
+
+  const handleLike = () => {
+    if (isLiking) return
+    setIsLiking(true)
+    onLike(comment._id)
+    setTimeout(() => setIsLiking(false), 300)
+  }
+
+  const handleDelete = () => {
+    if (isDeleting) return
+    setIsDeleting(true)
+    onDelete(comment._id)
+    setTimeout(() => setIsDeleting(false), 300)
   }
 
   return (
@@ -89,8 +109,14 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
                       </button>
                     )}
                     {canDelete && (
-                      <button onClick={() => { onDelete(comment._id); setShowMenu(false) }} className="w-full px-3 py-1.5 text-xs text-left hover:bg-black/5 transition flex items-center gap-2" style={{ color: '#E63946' }}>
-                        <Trash2 size={12} /> Delete
+                      <button 
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="w-full px-3 py-1.5 text-xs text-left hover:bg-black/5 transition flex items-center gap-2 disabled:opacity-50" 
+                        style={{ color: '#E63946' }}
+                      >
+                        {isDeleting ? <Spinner size={12} color="red" /> : <Trash2 size={12} />} 
+                        {isDeleting ? 'Deleting...' : 'Delete'}
                       </button>
                     )}
                   </div>
@@ -125,11 +151,12 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
             
             <div className="flex items-center gap-3 mt-2">
               <button 
-                onClick={() => onLike(comment._id)}
-                className="flex items-center gap-1 text-xs transition-all duration-200 hover:scale-105"
+                onClick={handleLike}
+                disabled={isLiking}
+                className="flex items-center gap-1 text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50"
                 style={{ color: comment.isLiked ? '#E63946' : '#999' }}
               >
-                <Heart size={12} fill={comment.isLiked ? 'currentColor' : 'none'} />
+                {isLiking ? <Spinner size={10} color={comment.isLiked ? 'red' : 'gray'} /> : <Heart size={12} fill={comment.isLiked ? 'currentColor' : 'none'} />}
                 <span>{comment.likesCount || 0}</span>
               </button>
               <button 
@@ -157,9 +184,15 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
               style={{ background: 'rgba(255,255,255,0.9)', border: '1px solid rgba(230,57,70,0.2)', color: '#1a1a2e' }}
               autoFocus
               onKeyDown={e => e.key === 'Enter' && handleReply()}
+              disabled={isReplying}
             />
-            <button onClick={handleReply} className="px-3 py-2 rounded-xl text-sm font-medium" style={{ background: '#E63946', color: '#fff' }}>
-              <Send size={14} />
+            <button 
+              onClick={handleReply} 
+              disabled={!replyContent.trim() || isReplying}
+              className="px-3 py-2 rounded-xl text-sm font-medium flex items-center justify-center min-w-[40px] disabled:opacity-50"
+              style={{ background: '#E63946', color: '#fff' }}
+            >
+              {isReplying ? <Spinner size={14} color="white" /> : <Send size={14} />}
             </button>
           </div>
         </div>
@@ -183,7 +216,7 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
 }
 
 // Delete Comment Modal
-function DeleteCommentModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; onClose: () => void; onConfirm: () => void }) {
+function DeleteCommentModal({ isOpen, onClose, onConfirm, isDeleting }: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isDeleting: boolean }) {
   if (!isOpen) return null
 
   return (
@@ -199,11 +232,17 @@ function DeleteCommentModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; o
             <p className="text-sm" style={{ color: '#666' }}>This action cannot be undone.</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="flex-1 py-2 rounded-xl text-sm font-medium" style={{ background: 'rgba(0,0,0,0.05)', color: '#666' }}>
+            <button onClick={onClose} disabled={isDeleting} className="flex-1 py-2 rounded-xl text-sm font-medium" style={{ background: 'rgba(0,0,0,0.05)', color: '#666' }}>
               Cancel
             </button>
-            <button onClick={onConfirm} className="flex-1 py-2 rounded-xl text-sm font-bold" style={{ background: '#E63946', color: '#fff' }}>
-              Delete
+            <button 
+              onClick={onConfirm} 
+              disabled={isDeleting}
+              className="flex-1 py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50" 
+              style={{ background: '#E63946', color: '#fff' }}
+            >
+              {isDeleting ? <Spinner size={14} color="white" /> : null}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </div>
@@ -217,6 +256,7 @@ export default function PostDetail() {
   const { user } = useAuthStore()
   const [comment, setComment] = useState('')
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null)
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const qc = useQueryClient()
 
   const { data: pd, isLoading: postLoading } = useQuery({ 
@@ -233,11 +273,15 @@ export default function PostDetail() {
     mutationFn: () => api.post('/comments', { content: comment, postId: id }),
     onSuccess: () => { 
       setComment(''); 
+      setIsSubmittingComment(false)
       qc.invalidateQueries({ queryKey: ['comments', id] }); 
       qc.invalidateQueries({ queryKey: ['post', id] });
       toast.success('Comment added.')
     },
-    onError: (e: any) => toast.error(e.response?.data?.message || 'Failed to post comment'),
+    onError: (e: any) => {
+      setIsSubmittingComment(false)
+      toast.error(e.response?.data?.message || 'Failed to post comment')
+    },
   })
 
   const replyMutation = useMutation({
@@ -279,6 +323,12 @@ export default function PostDetail() {
     onError: (e: any) => toast.error(e.response?.data?.message || 'Failed to like comment'),
   })
 
+  const handleSubmitComment = () => {
+    if (!comment.trim() || isSubmittingComment) return
+    setIsSubmittingComment(true)
+    commentMutation.mutate()
+  }
+
   if (postLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -310,13 +360,14 @@ export default function PostDetail() {
         isOpen={!!deleteCommentId}
         onClose={() => setDeleteCommentId(null)}
         onConfirm={() => deleteCommentId && deleteCommentMutation.mutate(deleteCommentId)}
+        isDeleting={deleteCommentMutation.isPending}
       />
 
       <div className="max-w-2xl mx-auto px-4 py-4 sm:py-6 pb-32 space-y-4">
         {/* Post Card */}
         <PostCard post={pd.post} queryKey={['post', id]} />
 
-        {/* Comment Input - NO IMAGE UPLOAD */}
+        {/* Comment Input */}
         <div className="rounded-2xl p-4 transition-all duration-300" style={{ background: 'rgba(255, 255, 255, 0.55)', backdropFilter: 'blur(10px)', border: '1px solid rgba(230, 57, 70, 0.08)' }}>
           <div className="flex gap-3">
             <Avatar src={user?.avatar} name={user?.displayName || user?.username} size={40} className="flex-shrink-0 hidden sm:block" />
@@ -325,7 +376,7 @@ export default function PostDetail() {
               <textarea
                 value={comment}
                 onChange={e => setComment(e.target.value)}
-                placeholder="Write a comment..."
+                placeholder="Write a comment... (use @username to mention)"
                 className="w-full rounded-xl px-4 py-2 text-sm focus:outline-none transition-all duration-200 resize-none"
                 style={{
                   background: 'rgba(255, 255, 255, 0.9)',
@@ -334,20 +385,21 @@ export default function PostDetail() {
                   minHeight: '70px'
                 }}
                 rows={2}
+                disabled={isSubmittingComment}
               />
               
               <div className="flex items-center justify-end mt-3 gap-2 flex-wrap">
                 <button 
-                  onClick={() => commentMutation.mutate()}
-                  disabled={!comment.trim() || commentMutation.isPending}
-                  className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+                  onClick={handleSubmitComment}
+                  disabled={!comment.trim() || isSubmittingComment}
+                  className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2 hover:scale-105"
                   style={{
                     background: comment.trim() ? '#E63946' : 'rgba(230, 57, 70, 0.3)',
                     color: '#fff'
                   }}
                 >
-                  {commentMutation.isPending ? <Spinner size={14} color="white" /> : <Send size={14} />}
-                  <span className="hidden sm:inline">Post</span>
+                  {isSubmittingComment ? <Spinner size={14} color="white" /> : <Send size={14} />}
+                  <span className="hidden sm:inline">{isSubmittingComment ? 'Posting...' : 'Post'}</span>
                 </button>
               </div>
             </div>

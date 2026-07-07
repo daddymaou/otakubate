@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
-import { Bell, Heart, MessageCircle, UserPlus, AtSign, Users, AlertTriangle, CheckCircle, X, Inbox } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Bell, Heart, MessageCircle, UserPlus, AtSign, Users, AlertTriangle, CheckCircle, X, Inbox, Trash2 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../lib/api'
 import { useAuthStore } from '../../stores/authStore'
@@ -52,6 +52,7 @@ const getNotificationIcon = (type: Notification['type']) => {
 
 export default function NotificationBell({ isMobile = false }: NotificationBellProps) {
   const { user } = useAuthStore()
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
@@ -73,14 +74,13 @@ export default function NotificationBell({ isMobile = false }: NotificationBellP
       }
     },
     enabled: !!user,
-    // 🔥 CRITICAL FIXES - Reduce API calls
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
-    refetchOnReconnect: false, // Don't refetch on reconnect
-    refetchInterval: 30000, // Increased from 10s to 30s
-    staleTime: 20000, // Data stays fresh for 20s
-    gcTime: 60000, // Cache for 60s
-    retry: 1, // Only retry once on failure
-    retryDelay: 3000, // Wait 3s before retry
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: 30000,
+    staleTime: 20000,
+    gcTime: 60000,
+    retry: 1,
+    retryDelay: 3000,
   })
 
   // Fetch unread count separately - with even less frequency
@@ -99,7 +99,7 @@ export default function NotificationBell({ isMobile = false }: NotificationBellP
     },
     enabled: !!user,
     refetchOnWindowFocus: false,
-    refetchInterval: 60000, // Only check unread count every 60s
+    refetchInterval: 60000,
     staleTime: 50000,
     gcTime: 120000,
     retry: 1,
@@ -166,22 +166,41 @@ export default function NotificationBell({ isMobile = false }: NotificationBellP
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isMobile])
 
-  const notifications = data?.notifications || []
-  const unreadCount = unreadData?.count || data?.unreadCount || 0
-
-  // Only log once on initial load
-  useEffect(() => {
-    if (isInitialLoad && !isLoading) {
-      console.log('🔔 [NotificationBell] Unread count:', unreadCount)
-      setIsInitialLoad(false)
-    }
-  }, [isLoading, unreadCount, isInitialLoad])
-
+  // ✅ NEW: Handle notification click with post existence check
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.read) {
       await markAsReadMutation.mutateAsync(notification._id)
     }
     setIsOpen(false)
+    
+    // ✅ Check if it's a post-related notification
+    if (notification.link && notification.link.startsWith('/posts/')) {
+      const postId = notification.link.replace('/posts/', '')
+      
+      try {
+        // ✅ Check if post exists before navigating
+        const { data } = await api.get(`/posts/${postId}`)
+        if (data?.post) {
+          navigate(notification.link)
+        } else {
+          // Post doesn't exist, delete the notification and show toast
+          await deleteMutation.mutateAsync(notification._id)
+          toast.error('This post has been deleted.', { icon: '🗑️' })
+        }
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          // Post is deleted - remove the notification
+          await deleteMutation.mutateAsync(notification._id)
+          toast.error('This post has been deleted.', { icon: '🗑️' })
+        } else {
+          // Some other error - still try to navigate
+          navigate(notification.link)
+        }
+      }
+    } else {
+      // Non-post notifications can navigate directly
+      navigate(notification.link)
+    }
   }
 
   const handleDelete = async (e: React.MouseEvent, notificationId: string) => {
@@ -280,11 +299,10 @@ export default function NotificationBell({ isMobile = false }: NotificationBellP
               </div>
             ) : (
               notifications.map((notification: Notification) => (
-                <Link
+                <button
                   key={notification._id}
-                  to={notification.link}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`flex items-start gap-3 px-4 py-3 transition-all duration-200 hover:bg-black/5 cursor-pointer group ${
+                  className={`w-full flex items-start gap-3 px-4 py-3 transition-all duration-200 hover:bg-black/5 cursor-pointer group text-left ${
                     !notification.read ? 'bg-opacity-30' : ''
                   }`}
                   style={{ 
@@ -341,7 +359,7 @@ export default function NotificationBell({ isMobile = false }: NotificationBellP
                       </div>
                     </div>
                   </div>
-                </Link>
+                </button>
               ))
             )}
           </div>

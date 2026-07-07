@@ -166,19 +166,19 @@ export default function NotificationBell({ isMobile = false }: NotificationBellP
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [isMobile])
 
-  // ✅ NEW: Handle notification click with post existence check
+  // Handle notification click with post existence check
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.read) {
       await markAsReadMutation.mutateAsync(notification._id)
     }
     setIsOpen(false)
     
-    // ✅ Check if it's a post-related notification
+    // Check if it's a post-related notification
     if (notification.link && notification.link.startsWith('/posts/')) {
       const postId = notification.link.replace('/posts/', '')
       
       try {
-        // ✅ Check if post exists before navigating
+        // Check if post exists before navigating
         const { data } = await api.get(`/posts/${postId}`)
         if (data?.post) {
           navigate(notification.link)
@@ -223,6 +223,10 @@ export default function NotificationBell({ isMobile = false }: NotificationBellP
     if (diffDays < 7) return `${diffDays}d ago`
     return date.toLocaleDateString()
   }
+
+  // ✅ Get notifications and unread count from data
+  const notifications = data?.notifications || []
+  const unreadCount = unreadData?.count || data?.unreadCount || 0
 
   if (!user) return null
 

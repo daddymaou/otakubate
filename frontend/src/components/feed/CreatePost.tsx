@@ -1,11 +1,69 @@
 import { useState, useRef, useEffect } from 'react'
-import { Image, AlertTriangle, X, Smile, Send, AtSign, Hash, Plus, Circle, Trash2, Camera, User, Users } from 'lucide-react'
+import { Image, AlertTriangle, X, Smile, Send, AtSign, Hash, Plus, Circle, Trash2, Camera, User, Users, Eye } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../../lib/api'
 import { useAuthStore } from '../../stores/authStore'
 import Avatar from '../ui/Avatar'
 import Spinner from '../ui/Spinner'
 import toast from 'react-hot-toast'
+import { Link } from 'react-router-dom'
+
+// MentionPreview component for live preview with colored mentions
+function MentionPreview({ content }: { content: string }) {
+  const mentionRegex = /@(\w+)/g
+  const parts = []
+  let lastIndex = 0
+  let match
+  
+  mentionRegex.lastIndex = 0
+  
+  while ((match = mentionRegex.exec(content)) !== null) {
+    const username = match[1]
+    const fullMatch = match[0]
+    const matchIndex = match.index
+    
+    if (matchIndex > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: content.substring(lastIndex, matchIndex)
+      })
+    }
+    
+    parts.push({
+      type: 'mention',
+      username: username,
+      content: fullMatch
+    })
+    
+    lastIndex = matchIndex + fullMatch.length
+  }
+  
+  if (lastIndex < content.length) {
+    parts.push({
+      type: 'text',
+      content: content.substring(lastIndex)
+    })
+  }
+  
+  return (
+    <span className="whitespace-pre-wrap break-words text-sm">
+      {parts.map((part, index) => {
+        if (part.type === 'mention') {
+          return (
+            <span
+              key={index}
+              className="inline-block"
+              style={{ color: '#E63946', fontWeight: 500 }}
+            >
+              @{part.username}
+            </span>
+          )
+        }
+        return <span key={index} style={{ color: '#666' }}>{part.content}</span>
+      })}
+    </span>
+  )
+}
 
 // Debounce function for search
 const useDebounce = (value: string, delay: number = 300) => {
@@ -38,6 +96,7 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
   const [mentionUsers, setMentionUsers] = useState<any[]>([])
   const [showMentions, setShowMentions] = useState(false)
   const [mentionInput, setMentionInput] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
   
   const fileRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -134,6 +193,7 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
       setShowMentions(false);
       setMentionUsers([]);
       setMentionInput('');
+      setShowPreview(false);
       qc.invalidateQueries({ queryKey: ['posts'] }); 
       if (communityId) {
         qc.invalidateQueries({ queryKey: ['community-posts', communityId] });
@@ -166,6 +226,12 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
   const characterCount = content.length
   const isOverLimit = characterCount > 2000
   const isValid = content.trim() && !isOverLimit
+  const hasMentions = /@\w+/.test(content)
+
+  // Toggle preview
+  const togglePreview = () => {
+    setShowPreview(!showPreview)
+  }
 
   return (
     <div className="relative">
@@ -267,6 +333,53 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
                 className="placeholder-gray-400 scrollbar-thin"
                 maxLength={2000}
               />
+              
+              {/* Preview Toggle Button */}
+              {content.length > 10 && (
+                <button
+                  onClick={togglePreview}
+                  className="text-xs mt-1 transition-colors hover:underline flex items-center gap-1"
+                  style={{ color: '#E63946' }}
+                >
+                  <Eye size={12} />
+                  {showPreview ? 'Hide preview' : hasMentions ? 'Preview mentions' : 'Preview'}
+                </button>
+              )}
+              
+              {/* Live Preview with colored mentions */}
+              {showPreview && content.trim() && (
+                <div 
+                  className="mt-2 p-3 rounded-xl"
+                  style={{ 
+                    background: 'rgba(255,255,255,0.8)',
+                    border: '1px solid rgba(230,57,70,0.1)'
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: '#999' }}>
+                      Preview
+                    </span>
+                    {hasMentions && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>
+                        Mentions highlighted
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm whitespace-pre-wrap break-words" style={{ color: '#1a1a2e' }}>
+                    <MentionPreview content={content} />
+                  </div>
+                  {images.length > 0 && (
+                    <div className="mt-2 text-xs" style={{ color: '#999' }}>
+                      📷 {images.length} image{images.length > 1 ? 's' : ''} attached
+                    </div>
+                  )}
+                  {spoiler && (
+                    <div className="mt-1 text-xs" style={{ color: '#E63946' }}>
+                      ⚠️ Spoiler warning enabled
+                    </div>
+                  )}
+                </div>
+              )}
               
               {/* Character Counter */}
               {content.length > 50 && (
@@ -423,6 +536,21 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
                     </button>
                   )}
                 </div>
+
+                {/* Preview button in desktop */}
+                {content.length > 10 && (
+                  <button
+                    onClick={togglePreview}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-xl transition-all duration-200 hover:scale-105"
+                    style={{
+                      color: showPreview ? '#E63946' : '#999',
+                      background: showPreview ? 'rgba(230,57,70,0.1)' : 'transparent'
+                    }}
+                  >
+                    <Eye size={14} />
+                    <span className="text-xs">{showPreview ? 'Hide' : 'Preview'}</span>
+                  </button>
+                )}
               </div>
 
               {/* Action Buttons - Mobile */}
@@ -448,7 +576,6 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
                     <AlertTriangle size={18} />
                   </button>
                   
-                  {/* 🔥 NEW: Separate Mention button for mobile */}
                   <button 
                     onClick={() => setShowMobileMention(!showMobileMention)}
                     className="p-2 rounded-full transition-all duration-200"
@@ -472,10 +599,11 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
                   </button>
                 </div>
                 
+                {/* ✅ SPINNER HERE - Post Button */}
                 <button 
                   onClick={() => mutation.mutate()} 
                   disabled={!isValid || mutation.isPending} 
-                  className="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 disabled:opacity-50"
+                  className="px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 disabled:opacity-50 flex items-center justify-center min-w-[70px]"
                   style={{
                     background: isValid ? '#E63946' : 'rgba(230, 57, 70, 0.3)',
                     color: '#fff'

@@ -236,10 +236,10 @@ export default function TermsConditions() {
               }}
             >
               💬 Contact Support
-            </button>
+            </a>
           </div>
           
-          {/* Maou Credit */}
+          {/* Maou Credit - Fixed closing tag */}
           <p className="text-xs" style={{ color: '#999' }}>
             Developed By{' '}
             <a 

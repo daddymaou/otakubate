@@ -114,7 +114,7 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
                         className="w-full px-3 py-1.5 text-xs text-left hover:bg-black/5 transition flex items-center gap-2 disabled:opacity-50" 
                         style={{ color: '#E63946' }}
                       >
-                        {isDeleting ? <Spinner size={12} color="red" /> : <Trash2 size={12} />} 
+                        {isDeleting ? <Spinner size={12} color="accent" /> : <Trash2 size={12} />} 
                         {isDeleting ? 'Deleting...' : 'Delete'}
                       </button>
                     )}
@@ -155,7 +155,7 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
                 className="flex items-center gap-1 text-xs transition-all duration-200 hover:scale-105 disabled:opacity-50"
                 style={{ color: comment.isLiked ? '#E63946' : '#999' }}
               >
-                {isLiking ? <Spinner size={10} color={comment.isLiked ? 'red' : 'gray'} /> : <Heart size={12} fill={comment.isLiked ? 'currentColor' : 'none'} />}
+                {isLiking ? <Spinner size={10} color="accent" /> : <Heart size={12} fill={comment.isLiked ? 'currentColor' : 'none'} />}
                 <span>{comment.likesCount || 0}</span>
               </button>
               <button 
@@ -252,7 +252,7 @@ function DeleteCommentModal({ isOpen, onClose, onConfirm, isDeleting }: { isOpen
 
 export default function PostDetail() {
   const { id } = useParams()
-  const navigate = useNavigate()  // ✅ ADDED for navigation
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const [comment, setComment] = useState('')
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null)
@@ -269,7 +269,6 @@ export default function PostDetail() {
     queryFn: () => api.get(`/comments/post/${id}`).then(r => r.data) 
   })
 
-  // ✅ ADDED: Handle post deletion - navigate to feed
   const handlePostDelete = () => {
     navigate('/feed')
   }
@@ -369,11 +368,10 @@ export default function PostDetail() {
       />
 
       <div className="max-w-2xl mx-auto px-4 py-4 sm:py-6 pb-32 space-y-4">
-        {/* ✅ UPDATED: PostCard with onDelete callback */}
         <PostCard 
           post={pd.post} 
           queryKey={['post', id]} 
-          onDelete={handlePostDelete}  // ✅ Pass callback to navigate away
+          onDelete={handlePostDelete}
         />
 
         {/* Comment Input */}

@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns'
 import api from '../lib/api'
 import { useAuthStore } from '../stores/authStore'
 import PostCard from '../components/feed/PostCard'
+import MentionText from '../components/feed/MentionText'  // ✅ ADDED IMPORT
 import Avatar from '../components/ui/Avatar'
 import Spinner from '../components/ui/Spinner'
 import toast from 'react-hot-toast'
@@ -143,9 +144,10 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
                 </div>
               </div>
             ) : (
-              <p className="text-sm mt-1 leading-relaxed break-words" style={{ color: '#1a1a2e' }}>
-                {comment.content}
-              </p>
+              // ✅ FIXED: Use MentionText for colored mentions in comments
+              <div className="text-sm mt-1 leading-relaxed break-words" style={{ color: '#1a1a2e' }}>
+                <MentionText content={comment.content} />
+              </div>
             )}
             
             <div className="flex items-center gap-3 mt-2">

@@ -6,15 +6,16 @@ import { formatDistanceToNow } from 'date-fns'
 import api from '../../lib/api'
 import { useAuthStore } from '../../stores/authStore'
 import Avatar from '../ui/Avatar'
+import MentionText from './MentionText'  // ✅ ADD THIS IMPORT
 import toast from 'react-hot-toast'
 
 interface Props { 
   post: any; 
   queryKey?: any[];
-  onDelete?: () => void;  // ✅ NEW: Callback for parent
+  onDelete?: () => void;
 }
 
-// Social Media Icons
+// Social Media Icons (unchanged)
 const FacebookIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 32 32">
     <path d="M16,2c-7.732,0-14,6.268-14,14,0,6.566,4.52,12.075,10.618,13.588v-9.31h-2.887v-4.278h2.887v-1.843c0-4.765,2.156-6.974,6.835-6.974,.887,0,2.417,.174,3.043,.348v3.878c-.33-.035-.904-.052-1.617-.052-2.296,0-3.183,.87-3.183,3.13v1.513h4.573l-.786,4.278h-3.787v9.619c6.932-.837,12.304-6.74,12.304-13.897,0-7.732-6.268-14-14-14Z" fill="#1877F2"/>
@@ -75,7 +76,7 @@ function DeleteConfirmModal({ isOpen, onClose, onConfirm, isDeleting }: { isOpen
   )
 }
 
-// Share Modal Component (unchanged - keep as is)
+// Share Modal Component (unchanged)
 function ShareModal({ isOpen, onClose, postId, content, images }: { isOpen: boolean; onClose: () => void; postId: string; content: string; images: string[] }) {
   const [copied, setCopied] = useState(false)
   const postUrl = `${window.location.origin}/posts/${postId}`
@@ -204,64 +205,7 @@ function ImageLightbox({ image, onClose }: { image: string | null; onClose: () =
   )
 }
 
-// Mention Component (unchanged)
-function MentionText({ content }: { content: string }) {
-  const mentionRegex = /@(\w+)/g
-  const parts = []
-  let lastIndex = 0
-  let match
-  
-  mentionRegex.lastIndex = 0
-  
-  while ((match = mentionRegex.exec(content)) !== null) {
-    const username = match[1]
-    const fullMatch = match[0]
-    const matchIndex = match.index
-    
-    if (matchIndex > lastIndex) {
-      parts.push({
-        type: 'text',
-        content: content.substring(lastIndex, matchIndex)
-      })
-    }
-    
-    parts.push({
-      type: 'mention',
-      username: username,
-      content: fullMatch
-    })
-    
-    lastIndex = matchIndex + fullMatch.length
-  }
-  
-  if (lastIndex < content.length) {
-    parts.push({
-      type: 'text',
-      content: content.substring(lastIndex)
-    })
-  }
-  
-  return (
-    <span className="whitespace-pre-wrap break-words">
-      {parts.map((part, index) => {
-        if (part.type === 'mention') {
-          return (
-            <Link
-              key={index}
-              to={`/profile/${part.username}`}
-              className="inline-block hover:underline transition-colors"
-              style={{ color: '#E63946', fontWeight: 500 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              @{part.username}
-            </Link>
-          )
-        }
-        return <span key={index}>{part.content}</span>
-      })}
-    </span>
-  )
-}
+// ✅ REMOVED: Local MentionText function (now imported from './MentionText')
 
 export default function PostCard({ post, queryKey = ['posts'], onDelete }: Props) {
   const { user: currentUser } = useAuthStore()
@@ -326,7 +270,6 @@ export default function PostCard({ post, queryKey = ['posts'], onDelete }: Props
     },
   })
 
-  // ✅ FIXED: Delete mutation with callback
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/posts/${post._id}`),
     onSuccess: () => {
@@ -334,7 +277,6 @@ export default function PostCard({ post, queryKey = ['posts'], onDelete }: Props
       qc.invalidateQueries({ queryKey: ['posts'] })
       toast.success('Post deleted successfully!')
       setShowDeleteConfirm(false)
-      // ✅ Call the callback to notify parent
       if (onDelete) {
         onDelete()
       }

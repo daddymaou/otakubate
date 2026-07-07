@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Mail, ArrowLeft, CheckCircle, AlertCircle, Send, KeyRound } from 'lucide-react'
+import { Mail, ArrowLeft, CheckCircle, AlertCircle, Send, KeyRound, Home } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import api from '../../lib/api'
 import Spinner from '../../components/ui/Spinner'
@@ -109,9 +109,21 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'linear-gradient(135deg, #FFF8EE 0%, #FFE8E8 100%)' }}>
       <div className="max-w-md w-full">
-        <Link to="/login" className="inline-flex items-center gap-2 text-sm mb-6 transition-colors hover:text-[#E63946]" style={{ color: '#666' }}>
-          <ArrowLeft size={16} /> Back to Login
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/login" className="inline-flex items-center gap-2 text-sm transition-colors hover:text-[#E63946]" style={{ color: '#666' }}>
+            <ArrowLeft size={16} /> Back to Login
+          </Link>
+          
+          {/* 🔥 Home Button */}
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 rounded-xl hover:bg-black/5 transition-all duration-200 hover:scale-105"
+            style={{ color: '#666' }}
+            title="Go to Home"
+          >
+            <Home size={20} />
+          </button>
+        </div>
 
         <div className="rounded-2xl p-8 shadow-xl" style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', border: '1px solid rgba(230,57,70,0.08)' }}>
           <div className="text-center mb-6">

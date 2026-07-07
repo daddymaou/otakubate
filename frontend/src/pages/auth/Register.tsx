@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle, Send, Shield, Sparkles } from 'lucide-react'
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle, Send, Shield, Sparkles, Home } from 'lucide-react'
 import api from '../../lib/api'
 import Spinner from '../../components/ui/Spinner'
 import toast from 'react-hot-toast'
@@ -216,7 +216,18 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-8" style={{ background: 'linear-gradient(135deg, #FFF8EE 0%, #FFE8E8 100%)' }}>
-      <div className="max-w-md w-full rounded-2xl p-6 sm:p-8" style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', border: '1px solid rgba(230,57,70,0.08)' }}>
+      <div className="max-w-md w-full rounded-2xl p-6 sm:p-8 relative" style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(10px)', border: '1px solid rgba(230,57,70,0.08)' }}>
+        
+        {/* 🔥 Home Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="absolute top-4 left-4 p-2 rounded-xl hover:bg-black/5 transition-all duration-200 hover:scale-105"
+          style={{ color: '#666' }}
+          title="Go to Home"
+        >
+          <Home size={20} />
+        </button>
+
         <div className="text-center mb-6">
           <img src="https://files.catbox.moe/8anicu.png" alt="OtakuBate" className="w-16 h-16 mx-auto mb-3" />
           <h2 className="text-2xl font-bold" style={{ color: '#1a1a2e' }}>Create Account</h2>

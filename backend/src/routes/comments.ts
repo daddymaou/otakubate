@@ -3,6 +3,7 @@ import Comment from '../models/Comment'
 import Like from '../models/Like'
 import Notification from '../models/Notification'
 import Post from '../models/Post'
+import User from '../models/User'  // ✅ ADDED - FIXES THE 500 ERROR
 import { protect, AuthRequest } from '../middleware/auth'
 
 const router = Router()

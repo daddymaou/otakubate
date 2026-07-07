@@ -33,8 +33,10 @@ export default function ClubFeed() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [showJoinModal, setShowJoinModal] = useState(false)
   const [isLeaving, setIsLeaving] = useState(false)
+  const [isTransferring, setIsTransferring] = useState(false)
   const [selectedTransferUser, setSelectedTransferUser] = useState('')
   const [transferAdmins, setTransferAdmins] = useState<any[]>([])
+  const [isCopying, setIsCopying] = useState(false)
 
   const { club, loading, isAdmin, isOwner, isMember, refresh, members } = useClub(slug)
   
@@ -55,6 +57,7 @@ export default function ClubFeed() {
   }
 
   const handleJoinClub = async () => {
+    if (isJoining) return
     setIsJoining(true)
     try {
       await api.post(`/otaku/clubs/${club?._id}/join`)
@@ -68,19 +71,31 @@ export default function ClubFeed() {
     }
   }
 
-  const handleCopyLink = () => {
-    const url = window.location.href
-    navigator.clipboard.writeText(url)
-    toast.success('Link copied!')
-    setShowMenu(false)
+  const handleCopyLink = async () => {
+    if (isCopying) return
+    setIsCopying(true)
+    try {
+      const url = window.location.href
+      await navigator.clipboard.writeText(url)
+      toast.success('Link copied!')
+    } catch (error) {
+      toast.error('Failed to copy link')
+    } finally {
+      setIsCopying(false)
+      setShowMenu(false)
+    }
   }
 
   const handleShare = () => {
-    navigator.share?.({
-      title: club?.name || 'Club',
-      text: `Check out ${club?.name} on OtakuBate!`,
-      url: window.location.href
-    }).catch(() => {})
+    if (navigator.share) {
+      navigator.share?.({
+        title: club?.name || 'Club',
+        text: `Check out ${club?.name} on OtakuBate!`,
+        url: window.location.href
+      }).catch(() => {})
+    } else {
+      handleCopyLink()
+    }
     setShowMenu(false)
   }
 
@@ -95,6 +110,7 @@ export default function ClubFeed() {
   }
 
   const confirmLeave = async () => {
+    if (isLeaving) return
     setIsLeaving(true)
     try {
       await api.post(`/otaku/clubs/${club?._id}/leave`)
@@ -118,22 +134,21 @@ export default function ClubFeed() {
       toast.error('Club name does not match')
       return
     }
+    if (isDeleting) return
     
     setIsDeleting(true)
     try {
       const clubId = club?._id
-      
-      // ✅ FIXED: Use api instance instead of fetch with localhost
       await api.delete(`/otaku/clubs/${clubId}`)
       
       toast.success('Club deleted successfully')
       setShowDeleteConfirm(false)
       setConfirmUsername('')
-      setIsDeleting(false)
       window.location.href = '/clubs'
     } catch (error: any) {
       console.error('Delete error:', error)
       toast.error(error.response?.data?.error || 'Failed to delete club')
+    } finally {
       setIsDeleting(false)
     }
   }
@@ -152,14 +167,19 @@ export default function ClubFeed() {
       toast.error('Please select a user')
       return
     }
+    if (isTransferring) return
+    
+    setIsTransferring(true)
     try {
       await api.post(`/otaku/clubs/${club?._id}/transfer/${selectedTransferUser}`)
       toast.success(`Ownership transferred successfully`)
       setShowTransferConfirm(false)
       setSelectedTransferUser('')
-      refresh()
+      await refresh()
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to transfer ownership')
+    } finally {
+      setIsTransferring(false)
     }
   }
 
@@ -194,7 +214,12 @@ export default function ClubFeed() {
   const getMenuItems = () => {
     const items = []
 
-    items.push({ label: 'Copy Link', icon: <Copy size={12} />, action: handleCopyLink })
+    items.push({ 
+      label: isCopying ? 'Copying...' : 'Copy Link', 
+      icon: isCopying ? <Loader2 size={12} className="animate-spin" /> : <Copy size={12} />, 
+      action: handleCopyLink,
+      disabled: isCopying
+    })
     items.push({ label: 'Share', icon: <Share2 size={12} />, action: handleShare })
 
     if (isMember) {
@@ -256,7 +281,7 @@ export default function ClubFeed() {
                 </button>
               )}
               
-              {/* ✅ FIXED: Dropdown Menu with proper overflow and positioning */}
+              {/* Dropdown Menu */}
               <div className="relative">
                 <button
                   onClick={() => setShowMenu(!showMenu)}
@@ -266,7 +291,7 @@ export default function ClubFeed() {
                 </button>
                 {showMenu && (
                   <div 
-                    className="absolute right-0 bottom-full mb-1 rounded-xl shadow-lg border py-1 min-w-[180px] z-50"
+                    className="absolute right-0 top-full mt-1 rounded-xl shadow-lg border py-1 min-w-[180px] z-50"
                     style={{ 
                       background: '#1a1a2e', 
                       borderColor: 'rgba(255,255,255,0.06)',
@@ -277,9 +302,10 @@ export default function ClubFeed() {
                       <button
                         key={index}
                         onClick={item.action}
+                        disabled={item.disabled}
                         className={`w-full px-3 py-1.5 text-xs hover:bg-white/5 transition-colors flex items-center gap-2 text-left ${
                           item.danger ? 'text-red-400' : item.primary ? 'text-[#E63946]' : 'text-gray-300'
-                        }`}
+                        } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         {item.icon} {item.label}
                       </button>
@@ -343,7 +369,9 @@ export default function ClubFeed() {
                 isOwner={isOwner}
                 onReact={react}
                 onUnreact={unreact}
-                onDelete={deleteDiscussion}
+                onDelete={async (id) => {
+                  await deleteDiscussion(id)
+                }}
               />
             ))}
           </div>
@@ -380,11 +408,14 @@ export default function ClubFeed() {
                 <button 
                   onClick={handleJoinClub} 
                   disabled={isJoining}
-                  className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50" 
+                  className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2" 
                   style={{ background: '#E63946' }}
                 >
                   {isJoining ? (
-                    <Loader2 size={18} className="animate-spin" />
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Joining...
+                    </>
                   ) : (
                     'Join Club'
                   )}
@@ -408,8 +439,15 @@ export default function ClubFeed() {
               <p className="text-sm mb-4" style={{ color: '#666' }}>You will lose access to all discussions in this club.</p>
               <div className="flex gap-3">
                 <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 py-2 rounded-xl text-sm font-medium transition-all hover:bg-black/5" style={{ color: '#666' }}>Cancel</button>
-                <button onClick={confirmLeave} disabled={isLeaving} className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50" style={{ background: '#E63946' }}>
-                  {isLeaving ? <Loader2 size={18} className="animate-spin" /> : 'Leave'}
+                <button onClick={confirmLeave} disabled={isLeaving} className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2" style={{ background: '#E63946' }}>
+                  {isLeaving ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Leaving...
+                    </>
+                  ) : (
+                    'Leave'
+                  )}
                 </button>
               </div>
             </div>
@@ -443,11 +481,18 @@ export default function ClubFeed() {
                 </button>
                 <button 
                   onClick={confirmDelete} 
-                  className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50" 
+                  className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2" 
                   style={{ background: '#E63946' }} 
                   disabled={confirmUsername !== club.name || isDeleting}
                 >
-                  {isDeleting ? <Loader2 size={18} className="animate-spin" /> : 'Delete'}
+                  {isDeleting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    'Delete'
+                  )}
                 </button>
               </div>
             </div>
@@ -491,11 +536,18 @@ export default function ClubFeed() {
                 <button onClick={() => setShowTransferConfirm(false)} className="flex-1 py-2 rounded-xl text-sm font-medium transition-all hover:bg-black/5" style={{ color: '#666' }}>Cancel</button>
                 <button 
                   onClick={confirmTransfer} 
-                  className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50" 
+                  className="flex-1 py-2 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2" 
                   style={{ background: '#FBBF24' }} 
-                  disabled={!selectedTransferUser || transferAdmins.length === 0}
+                  disabled={!selectedTransferUser || transferAdmins.length === 0 || isTransferring}
                 >
-                  Transfer
+                  {isTransferring ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Transferring...
+                    </>
+                  ) : (
+                    'Transfer'
+                  )}
                 </button>
               </div>
             </div>

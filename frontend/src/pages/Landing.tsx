@@ -259,7 +259,7 @@ const content = {
     ctaTitleEnd: '?',
     ctaSub: 'Thousands of fans are already here. Your community is waiting.',
     ctaButton: 'Join OtakuBate — Free Forever',
-    footerText: '| Developed By MaouKnowsJava ',
+    footerText: '| Developed By ',
     footerLinks: ['Privacy', 'Terms', 'Contact'],
     loading: 'Loading trending anime...',
     trending: 'Trending',
@@ -295,7 +295,7 @@ const content = {
     ctaTitleEnd: '',
     ctaSub: 'すでに何千人ものファンがここにいます。あなたのコミュニティが待っています。',
     ctaButton: '無料で始める · Join Free Forever',
-    footerText: 'アニメファンのために作られた · || Developed By MaouKnowsJava ',
+    footerText: 'アニメファンのために作られた · Developed By ',
     footerLinks: ['プライバシー', '利用規約', 'お問い合わせ'],
     loading: 'アニメを読み込み中...',
     trending: '急上昇',
@@ -783,7 +783,7 @@ export default function Landing() {
 
         <div style={{ marginTop: 'auto', paddingTop: '32px', textAlign: 'center' }}>
           <p style={{ fontSize: '11px', color: '#ccc' }}>
-            {lang === 'jp' ? 'オタクベート' : 'MaouKnowsJava'} 
+            {lang === 'jp' ? 'オタクベート' : 'ᗰᗩOᑌ'}
           </p>
         </div>
       </div>
@@ -1391,6 +1391,22 @@ export default function Landing() {
           </div>
           <p style={{ fontSize: '13px', color: '#999', textAlign: 'center' }}>
             © {new Date().getFullYear()} OtakuBate · {t.footerText}
+            <a 
+              href="https://maou.name.ng/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                color: '#000000', 
+                fontWeight: 700, 
+                textDecoration: 'none',
+                fontFamily: "'Arial', sans-serif",
+                transition: 'color 0.2s ease'
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#E63946')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#000000')}
+            >
+              ᗰᗩOᑌ
+            </a>
           </p>
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {t.footerLinks.map(link => {

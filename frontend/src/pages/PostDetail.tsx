@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Send, MoreHorizontal, Trash2, AlertTriangle, X, Heart, MessageCircle, Edit2, Check, XCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -58,7 +58,6 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
       onReply(comment._id, replyContent)
       setReplyContent('')
       setShowReplyInput(false)
-      // Reset after a moment
       setTimeout(() => setIsReplying(false), 500)
     }
   }
@@ -253,6 +252,7 @@ function DeleteCommentModal({ isOpen, onClose, onConfirm, isDeleting }: { isOpen
 
 export default function PostDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()  // ✅ ADDED for navigation
   const { user } = useAuthStore()
   const [comment, setComment] = useState('')
   const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null)
@@ -268,6 +268,11 @@ export default function PostDetail() {
     queryKey: ['comments', id], 
     queryFn: () => api.get(`/comments/post/${id}`).then(r => r.data) 
   })
+
+  // ✅ ADDED: Handle post deletion - navigate to feed
+  const handlePostDelete = () => {
+    navigate('/feed')
+  }
 
   const commentMutation = useMutation({
     mutationFn: () => api.post('/comments', { content: comment, postId: id }),
@@ -364,8 +369,12 @@ export default function PostDetail() {
       />
 
       <div className="max-w-2xl mx-auto px-4 py-4 sm:py-6 pb-32 space-y-4">
-        {/* Post Card */}
-        <PostCard post={pd.post} queryKey={['post', id]} />
+        {/* ✅ UPDATED: PostCard with onDelete callback */}
+        <PostCard 
+          post={pd.post} 
+          queryKey={['post', id]} 
+          onDelete={handlePostDelete}  // ✅ Pass callback to navigate away
+        />
 
         {/* Comment Input */}
         <div className="rounded-2xl p-4 transition-all duration-300" style={{ background: 'rgba(255, 255, 255, 0.55)', backdropFilter: 'blur(10px)', border: '1px solid rgba(230, 57, 70, 0.08)' }}>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, MessageCircle, Share2, MoreHorizontal, Bookmark, AlertTriangle, Sparkles, X, Check, Copy, Download, Trash2 } from 'lucide-react'
+import { Heart, MessageCircle, Share2, MoreHorizontal, Bookmark, AlertTriangle, Sparkles, X, Check, Copy, Download, Trash2, Loader2 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import api from '../../lib/api'
@@ -8,7 +8,11 @@ import { useAuthStore } from '../../stores/authStore'
 import Avatar from '../ui/Avatar'
 import toast from 'react-hot-toast'
 
-interface Props { post: any; queryKey?: any[] }
+interface Props { 
+  post: any; 
+  queryKey?: any[];
+  onDelete?: () => void;  // ✅ NEW: Callback for parent
+}
 
 // Social Media Icons
 const FacebookIcon = () => (
@@ -35,8 +39,8 @@ const TwitterIcon = () => (
   </svg>
 )
 
-// Delete Confirmation Modal
-function DeleteConfirmModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; onClose: () => void; onConfirm: () => void }) {
+// Delete Confirmation Modal with Spinner
+function DeleteConfirmModal({ isOpen, onClose, onConfirm, isDeleting }: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isDeleting: boolean }) {
   if (!isOpen) return null
 
   return (
@@ -52,11 +56,17 @@ function DeleteConfirmModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; o
             <p className="text-sm" style={{ color: '#666' }}>This action cannot be undone. The post will be permanently removed.</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="flex-1 py-2 rounded-xl text-sm font-medium" style={{ background: 'rgba(0,0,0,0.05)', color: '#666' }}>
+            <button onClick={onClose} disabled={isDeleting} className="flex-1 py-2 rounded-xl text-sm font-medium" style={{ background: 'rgba(0,0,0,0.05)', color: '#666' }}>
               Cancel
             </button>
-            <button onClick={onConfirm} className="flex-1 py-2 rounded-xl text-sm font-bold" style={{ background: '#E63946', color: '#fff' }}>
-              Delete
+            <button 
+              onClick={onConfirm} 
+              disabled={isDeleting}
+              className="flex-1 py-2 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50" 
+              style={{ background: '#E63946', color: '#fff' }}
+            >
+              {isDeleting ? <Loader2 size={16} className="animate-spin" /> : null}
+              {isDeleting ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </div>
@@ -65,7 +75,7 @@ function DeleteConfirmModal({ isOpen, onClose, onConfirm }: { isOpen: boolean; o
   )
 }
 
-// Share Modal Component
+// Share Modal Component (unchanged - keep as is)
 function ShareModal({ isOpen, onClose, postId, content, images }: { isOpen: boolean; onClose: () => void; postId: string; content: string; images: string[] }) {
   const [copied, setCopied] = useState(false)
   const postUrl = `${window.location.origin}/posts/${postId}`
@@ -146,7 +156,7 @@ function ShareModal({ isOpen, onClose, postId, content, images }: { isOpen: bool
   )
 }
 
-// Image Lightbox Modal with Download
+// Image Lightbox Modal with Download (unchanged)
 function ImageLightbox({ image, onClose }: { image: string | null; onClose: () => void }) {
   const [downloading, setDownloading] = useState(false)
 
@@ -194,18 +204,13 @@ function ImageLightbox({ image, onClose }: { image: string | null; onClose: () =
   )
 }
 
-// ============================================
-// MENTION COMPONENT - Renders @username as clickable link
-// ============================================
+// Mention Component (unchanged)
 function MentionText({ content }: { content: string }) {
-  // Regex to match @username mentions
   const mentionRegex = /@(\w+)/g
-  
   const parts = []
   let lastIndex = 0
   let match
   
-  // Reset regex index
   mentionRegex.lastIndex = 0
   
   while ((match = mentionRegex.exec(content)) !== null) {
@@ -213,7 +218,6 @@ function MentionText({ content }: { content: string }) {
     const fullMatch = match[0]
     const matchIndex = match.index
     
-    // Push text before the mention
     if (matchIndex > lastIndex) {
       parts.push({
         type: 'text',
@@ -221,7 +225,6 @@ function MentionText({ content }: { content: string }) {
       })
     }
     
-    // Push the mention as a link
     parts.push({
       type: 'mention',
       username: username,
@@ -231,7 +234,6 @@ function MentionText({ content }: { content: string }) {
     lastIndex = matchIndex + fullMatch.length
   }
   
-  // Push remaining text
   if (lastIndex < content.length) {
     parts.push({
       type: 'text',
@@ -261,7 +263,7 @@ function MentionText({ content }: { content: string }) {
   )
 }
 
-export default function PostCard({ post, queryKey = ['posts'] }: Props) {
+export default function PostCard({ post, queryKey = ['posts'], onDelete }: Props) {
   const { user: currentUser } = useAuthStore()
   const [showSpoiler, setShowSpoiler] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
@@ -324,12 +326,18 @@ export default function PostCard({ post, queryKey = ['posts'] }: Props) {
     },
   })
 
+  // ✅ FIXED: Delete mutation with callback
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/posts/${post._id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey })
+      qc.invalidateQueries({ queryKey: ['posts'] })
       toast.success('Post deleted successfully!')
       setShowDeleteConfirm(false)
+      // ✅ Call the callback to notify parent
+      if (onDelete) {
+        onDelete()
+      }
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.message || 'Failed to delete post')
@@ -373,6 +381,7 @@ export default function PostCard({ post, queryKey = ['posts'] }: Props) {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={() => deleteMutation.mutate()}
+        isDeleting={deleteMutation.isPending}
       />
 
       <ImageLightbox image={selectedImage} onClose={() => setSelectedImage(null)} />
@@ -457,7 +466,6 @@ export default function PostCard({ post, queryKey = ['posts'] }: Props) {
                 </div>
               ) : (
                 <div className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap break-words" style={{ color: '#1a1a2e' }}>
-                  {/* 🔥 NEW: Render content with mention links */}
                   <MentionText content={post.content} />
                 </div>
               )}
@@ -487,8 +495,14 @@ export default function PostCard({ post, queryKey = ['posts'] }: Props) {
             )}
             
             <div className="flex items-center gap-1 mt-3">
-              <button onClick={() => likeMutation.mutate()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm transition-all duration-200 hover:scale-105" style={{ color: post.isLiked ? '#E63946' : '#999', background: post.isLiked ? 'rgba(230, 57, 70, 0.1)' : 'transparent' }}>
-                <Heart size={16} fill={post.isLiked ? 'currentColor' : 'none'} /> <span>{post.likesCount || 0}</span>
+              <button 
+                onClick={() => likeMutation.mutate()} 
+                disabled={likeMutation.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm transition-all duration-200 hover:scale-105 disabled:opacity-50" 
+                style={{ color: post.isLiked ? '#E63946' : '#999', background: post.isLiked ? 'rgba(230, 57, 70, 0.1)' : 'transparent' }}
+              >
+                {likeMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Heart size={16} fill={post.isLiked ? 'currentColor' : 'none'} />}
+                <span>{post.likesCount || 0}</span>
               </button>
               
               <Link to={`/posts/${post._id}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm transition-all duration-200 hover:scale-105" style={{ color: '#999', background: 'transparent' }}>
@@ -499,8 +513,13 @@ export default function PostCard({ post, queryKey = ['posts'] }: Props) {
                 <Share2 size={16} />
               </button>
 
-              <button onClick={() => bookmarkMutation.mutate()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm transition-all duration-200 hover:scale-105 ml-auto" style={{ color: post.isBookmarked ? '#E63946' : '#999', background: post.isBookmarked ? 'rgba(230, 57, 70, 0.1)' : 'transparent' }}>
-                <Bookmark size={16} fill={post.isBookmarked ? 'currentColor' : 'none'} />
+              <button 
+                onClick={() => bookmarkMutation.mutate()} 
+                disabled={bookmarkMutation.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm transition-all duration-200 hover:scale-105 ml-auto disabled:opacity-50" 
+                style={{ color: post.isBookmarked ? '#E63946' : '#999', background: post.isBookmarked ? 'rgba(230, 57, 70, 0.1)' : 'transparent' }}
+              >
+                {bookmarkMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Bookmark size={16} fill={post.isBookmarked ? 'currentColor' : 'none'} />}
               </button>
             </div>
           </div>

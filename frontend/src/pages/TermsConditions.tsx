@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, FileText, Shield, AlertTriangle, User, Lock, BookOpen, Scale, MessageCircle, Mail } from 'lucide-react'
 
 const Section = ({ id, title, icon, children }: { id?: string; title: string; icon?: React.ReactNode; children: React.ReactNode }) => (
@@ -12,6 +12,8 @@ const Section = ({ id, title, icon, children }: { id?: string; title: string; ic
 )
 
 export default function TermsConditions() {
+  const navigate = useNavigate()
+
   return (
     <div className="min-h-screen pb-16" style={{ background: 'linear-gradient(135deg, #FFF8EE 0%, #FFE8E8 100%)' }}>
       {/* Background Decorations */}
@@ -26,7 +28,7 @@ export default function TermsConditions() {
         />
       </div>
 
-      {/* Navbar - Matches Help/Support */}
+      {/* Navbar */}
       <nav 
         className="relative z-10 sticky top-0"
         style={{
@@ -36,18 +38,18 @@ export default function TermsConditions() {
         }}
       >
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
-          <Link 
-            to="/settings" 
+          <button 
+            onClick={() => navigate(-1)} 
             className="p-2 rounded-xl hover:bg-black/5 transition-all duration-200"
           >
             <ArrowLeft size={20} style={{ color: '#666' }} />
-          </Link>
+          </button>
           <div className="flex items-center gap-2">
             <FileText size={20} style={{ color: '#E63946' }} />
             <span className="text-xl font-bold" style={{ color: '#1a1a2e' }}>Terms of Service</span>
           </div>
           <span className="text-xs ml-auto px-2 py-1 rounded-full" style={{ background: 'rgba(230,57,70,0.08)', color: '#E63946' }}>
-            Updated: 2025
+            Updated: July 1, 2026
           </span>
         </div>
       </nav>
@@ -73,7 +75,7 @@ export default function TermsConditions() {
             </div>
           </div>
           <h1 className="text-2xl font-black" style={{ color: '#1a1a2e' }}>Terms of Service</h1>
-          <p style={{ color: '#999' }}>Effective: June 10, 2025 · Last Updated: June 10, 2025</p>
+          <p style={{ color: '#999' }}>Effective: July 1, 2026 · Last Updated: July 1, 2026</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs">
             <span className="px-2.5 py-1 rounded-full" style={{ background: 'rgba(230,57,70,0.06)', color: '#E63946' }}>
               <Shield size={12} className="inline mr-1" /> OtakuBate
@@ -193,51 +195,73 @@ export default function TermsConditions() {
           </Section>
         </div>
 
-        {/* Footer Links */}
-        <div className="text-center mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link 
-            to="/settings" 
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-            style={{
-              background: 'rgba(26,26,46,0.05)',
-              color: '#1a1a2e'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(230,57,70,0.1)'
-              e.currentTarget.style.color = '#E63946'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(26,26,46,0.05)'
-              e.currentTarget.style.color = '#1a1a2e'
-            }}
-          >
-            ← Back to Settings
-          </Link>
-          <a 
-            href="https://t.me/OtakuBateBot" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
-            style={{
-              background: 'rgba(34,158,217,0.08)',
-              color: '#229ED9',
-              border: '1px solid rgba(34,158,217,0.15)'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = 'rgba(34,158,217,0.15)'
-              e.currentTarget.style.transform = 'scale(1.02)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(34,158,217,0.08)'
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-          >
-            💬 Contact Support
-          </a>
+        {/* Footer */}
+        <div className="text-center mt-8 space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+              style={{
+                background: 'rgba(26,26,46,0.05)',
+                color: '#1a1a2e'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(230,57,70,0.1)'
+                e.currentTarget.style.color = '#E63946'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(26,26,46,0.05)'
+                e.currentTarget.style.color = '#1a1a2e'
+              }}
+            >
+              ← Back
+            </button>
+            <a 
+              href="https://t.me/OtakuBateBot" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
+              style={{
+                background: 'rgba(34,158,217,0.08)',
+                color: '#229ED9',
+                border: '1px solid rgba(34,158,217,0.15)'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(34,158,217,0.15)'
+                e.currentTarget.style.transform = 'scale(1.02)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(34,158,217,0.08)'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+            >
+              💬 Contact Support
+            </button>
+          </div>
+          
+          {/* Maou Credit */}
+          <p className="text-xs" style={{ color: '#999' }}>
+            Developed By{' '}
+            <a 
+              href="https://maou.name.ng/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ 
+                color: '#000000', 
+                fontWeight: 700, 
+                textDecoration: 'none',
+                fontFamily: "'Arial', sans-serif",
+                transition: 'color 0.2s ease'
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#E63946')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#000000')}
+            >
+              ᗰᗩOᑌ
+            </a>
+          </p>
         </div>
       </div>
 
-      {/* Animations */}
       <style>{`
         @keyframes blobFloat1 {
           0%, 100% { transform: translate(0, 0) scale(1); }

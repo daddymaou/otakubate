@@ -298,15 +298,12 @@ function UserCard({ user, currentUser, onFollowToggle, isFollowing }: {
         name={user.displayName || user.username} 
         size={48} 
       />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="font-semibold text-base truncate" style={{ color: '#1a1a2e' }}>
-            {user.displayName || user.username}
-          </span>
-          {user.isVerified && (
-            <span className="text-xs flex-shrink-0" style={{ color: '#E63946' }}>✓</span>
-          )}
-        </div>
+  <div className="flex-1 min-w-0">
+  <div className="flex items-center gap-1.5 flex-wrap">
+    <span className="font-semibold text-base truncate" style={{ color: '#1a1a2e' }}>
+      {user.displayName || user.username}
+    </span>
+  </div>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-sm truncate" style={{ color: '#999' }}>@{user.username}</span>
           <span className="text-xs flex-shrink-0" style={{ color: '#ccc' }}>•</span>

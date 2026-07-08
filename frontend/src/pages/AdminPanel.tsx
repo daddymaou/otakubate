@@ -471,8 +471,7 @@ export default function AdminPanel() {
                   <span className="font-semibold text-sm" style={{ color: '#1a1a2e' }}>
                     {u.displayName || u.username}
                   </span>
-                  {u.isVerified && <span className="text-xs" style={{ color: '#E63946' }}>✓</span>}
-                  {u.isAdmin && <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>admin</span>}
+                              {u.isAdmin && <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>admin</span>}
                   {!u.isActive && <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>banned</span>}
                 </div>
                 <div className="text-xs" style={{ color: '#999' }}>@{u.username} • {u.email}</div>

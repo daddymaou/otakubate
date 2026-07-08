@@ -337,7 +337,6 @@ export default function Profile() {
             <div className="text-center mt-3">
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1a1a2e' }}>{u.displayName || u.username}</h1>
-                {u.isVerified && <span className="text-[#E63946] text-base">✓</span>}
                 {u.isPremium && <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-[#E63946] to-[#FF6B7A] text-white font-bold">PRO</span>}
               </div>
               <p className="text-sm" style={{ color: '#999' }}>@{u.username}</p>

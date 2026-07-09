@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns'
 import api from '../lib/api'
 import { useAuthStore } from '../stores/authStore'
 import PostCard from '../components/feed/PostCard'
-import MentionText from '../components/feed/MentionText'  // ✅ ADDED IMPORT
+import MentionText from '../components/feed/MentionText'
 import Avatar from '../components/ui/Avatar'
 import Spinner from '../components/ui/Spinner'
 import toast from 'react-hot-toast'
@@ -90,7 +90,7 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
                 <Link to={`/profile/${comment.author?.username}`} className="font-semibold text-sm hover:underline" style={{ color: '#1a1a2e' }}>
                   {comment.author?.displayName || comment.author?.username}
                 </Link>
-                {comment.author?.isVerified && <span className="text-xs" style={{ color: '#E63946' }}>✓</span>}
+                {/* ✅ REMOVED: Verified badge */}
                 <span className="text-xs" style={{ color: '#999' }}>
                   · {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                 </span>
@@ -144,7 +144,6 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
                 </div>
               </div>
             ) : (
-              // ✅ FIXED: Use MentionText for colored mentions in comments
               <div className="text-sm mt-1 leading-relaxed break-words" style={{ color: '#1a1a2e' }}>
                 <MentionText content={comment.content} />
               </div>
@@ -464,6 +463,6 @@ export default function PostDetail() {
         .animate-fade-in { animation: fade-in 0.2s ease-out; }
         .animate-scale-in { animation: scale-in 0.2s ease-out; }
       `}</style>
-    </>
+    </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Users, UserPlus, UserCheck, Sparkles, X, MessageCircle } from 'lucide-react'
+import { Search, Users, UserPlus, UserCheck, Sparkles, X, MessageCircle, Loader2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import api from '../lib/api'
 import Avatar from '../components/ui/Avatar'
@@ -128,6 +128,9 @@ export default function Explore() {
 
   const isLoading = (debouncedQ.length >= 2 && searchLoading) || (!debouncedQ && recommendedLoading)
 
+  // Check if any mutation is pending
+  const isFollowingLoading = followMutation.isPending
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
       {/* Header */}
@@ -212,6 +215,7 @@ export default function Explore() {
                 currentUser={currentUser}
                 onFollowToggle={handleFollowToggle}
                 isFollowing={u.isFollowing}
+                isPending={isFollowingLoading}
               />
             ))}
           </div>
@@ -238,6 +242,7 @@ export default function Explore() {
               currentUser={currentUser}
               onFollowToggle={handleFollowToggle}
               isFollowing={u.isFollowing}
+              isPending={isFollowingLoading}
             />
           ))}
         </div>
@@ -267,17 +272,17 @@ export default function Explore() {
 }
 
 // User Card Component
-function UserCard({ user, currentUser, onFollowToggle, isFollowing }: { 
+function UserCard({ user, currentUser, onFollowToggle, isFollowing, isPending }: { 
   user: any; 
   currentUser: any; 
   onFollowToggle: (userId: string, isFollowing: boolean) => void;
   isFollowing: boolean;
+  isPending: boolean;
 }) {
   const isOwnProfile = currentUser?._id === user._id
 
   return (
-    <Link 
-      to={`/profile/${user.username}`} 
+    <div 
       className="flex items-center gap-3 p-4 rounded-2xl transition-all duration-200 hover:scale-[1.01] group"
       style={{
         background: 'rgba(255, 255, 255, 0.5)',
@@ -293,45 +298,56 @@ function UserCard({ user, currentUser, onFollowToggle, isFollowing }: {
         e.currentTarget.style.boxShadow = 'none'
       }}
     >
-      <Avatar 
-        src={user.avatar} 
-        name={user.displayName || user.username} 
-        size={48} 
-      />
-  <div className="flex-1 min-w-0">
-  <div className="flex items-center gap-1.5 flex-wrap">
-    <span className="font-semibold text-base truncate" style={{ color: '#1a1a2e' }}>
-      {user.displayName || user.username}
-    </span>
-  </div>
-        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          <span className="text-sm truncate" style={{ color: '#999' }}>@{user.username}</span>
-          <span className="text-xs flex-shrink-0" style={{ color: '#ccc' }}>•</span>
-          <span className="text-xs flex-shrink-0" style={{ color: '#999' }}>{user.followersCount || 0} followers</span>
+      <Link 
+        to={`/profile/${user.username}`} 
+        className="flex items-center gap-3 flex-1 min-w-0"
+        onClick={() => window.scrollTo(0, 0)}
+      >
+        <Avatar 
+          src={user.avatar} 
+          name={user.displayName || user.username} 
+          size={48} 
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="font-semibold text-base truncate" style={{ color: '#1a1a2e' }}>
+              {user.displayName || user.username}
+            </span>
+            {/* ✅ REMOVED: Verified badge */}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span className="text-sm truncate" style={{ color: '#999' }}>@{user.username}</span>
+            <span className="text-xs flex-shrink-0" style={{ color: '#ccc' }}>•</span>
+            <span className="text-xs flex-shrink-0" style={{ color: '#999' }}>{user.followersCount || 0} followers</span>
+          </div>
+          {user.bio && (
+            <p className="text-xs truncate mt-1 max-w-[200px] sm:max-w-xs" style={{ color: '#666' }}>
+              {user.bio}
+            </p>
+          )}
         </div>
-        {user.bio && (
-          <p className="text-xs truncate mt-1 max-w-[200px] sm:max-w-xs" style={{ color: '#666' }}>
-            {user.bio}
-          </p>
-        )}
-      </div>
+      </Link>
+      
       {!isOwnProfile && (
         <button 
-          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0"
+          onClick={() => onFollowToggle(user._id, isFollowing)}
+          disabled={isPending}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0 flex items-center gap-1.5 disabled:opacity-50"
           style={{
             background: isFollowing ? 'rgba(230,57,70,0.1)' : '#1a1a2e',
             color: isFollowing ? '#E63946' : '#fff',
             border: isFollowing ? '1px solid rgba(230,57,70,0.2)' : 'none'
           }}
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            onFollowToggle(user._id, isFollowing)
-          }}
         >
-          {isFollowing ? 'Following' : 'Follow'}
+          {isPending ? (
+            <Loader2 size={12} className="animate-spin" />
+          ) : null}
+          {isPending 
+            ? (isFollowing ? 'Unfollowing...' : 'Following...')
+            : (isFollowing ? 'Following' : 'Follow')
+          }
         </button>
       )}
-    </Link>
+    </div>
   )
 }

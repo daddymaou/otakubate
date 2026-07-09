@@ -551,6 +551,20 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
                     <span className="text-xs">{showPreview ? 'Hide' : 'Preview'}</span>
                   </button>
                 )}
+
+                {/* ✅ FIXED: Post Button for Desktop - Always Visible */}
+                <button 
+                  onClick={() => mutation.mutate()} 
+                  disabled={!isValid || mutation.isPending} 
+                  className="ml-auto px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{
+                    background: isValid ? '#E63946' : 'rgba(230, 57, 70, 0.3)',
+                    color: '#fff'
+                  }}
+                >
+                  {mutation.isPending ? <Spinner size={14} color="white" /> : null}
+                  {mutation.isPending ? 'Posting...' : 'Post'}
+                </button>
               </div>
 
               {/* Action Buttons - Mobile */}
@@ -599,7 +613,7 @@ export default function CreatePost({ communityId }: { communityId?: string }) {
                   </button>
                 </div>
                 
-                {/* ✅ SPINNER HERE - Post Button */}
+                {/* Mobile Post Button */}
                 <button 
                   onClick={() => mutation.mutate()} 
                   disabled={!isValid || mutation.isPending} 

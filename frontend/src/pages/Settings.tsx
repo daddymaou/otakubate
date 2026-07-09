@@ -5,19 +5,20 @@ import {
   Zap, ChevronRight, Palette, Sparkles, Heart, Users,
   Star, Globe, Lock, MessageSquare, Eye, KeyRound, Mail,
   Trash2, AlertTriangle, X, Check, MessageCircle, Settings as SettingsIcon,
-  Ban, Unlock
+  Ban, Unlock, Loader2
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import Avatar from '../components/ui/Avatar'
+import Spinner from '../components/ui/Spinner'
 import toast from 'react-hot-toast'
 
 // ============================================
 // CONFIG - Custom Avatar URL
 // ============================================
-const AIKO_AVATAR_URL = 'https://files.catbox.moe/8anicu.png' // ← Replace with your image URL
+const AIKO_AVATAR_URL = 'https://files.catbox.moe/8anicu.png'
 
-// Sign Out Modal
-function SignOutModal({ onClose, onConfirm }: { onClose: () => void; onConfirm: () => void }) {
+// Sign Out Modal with Spinner
+function SignOutModal({ onClose, onConfirm, isLoading }: { onClose: () => void; onConfirm: () => void; isLoading: boolean }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(26,26,46,0.85)', backdropFilter: 'blur(20px)' }} onClick={onClose}>
       <div className="relative w-full max-w-sm overflow-hidden shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}
@@ -33,11 +34,22 @@ function SignOutModal({ onClose, onConfirm }: { onClose: () => void; onConfirm: 
             <p className="text-sm" style={{ color: '#666' }}>Are you sure you want to sign out of your account?</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={onClose} className="flex-1 py-2 text-sm font-medium transition-all hover:bg-black/5" style={{ color: '#666', borderRadius: '12px 2px 12px 2px' }}>
+            <button 
+              onClick={onClose} 
+              disabled={isLoading}
+              className="flex-1 py-2 text-sm font-medium transition-all hover:bg-black/5 disabled:opacity-50" 
+              style={{ color: '#666', borderRadius: '12px 2px 12px 2px' }}
+            >
               Cancel
             </button>
-            <button onClick={onConfirm} className="flex-1 py-2 text-sm font-bold text-white transition-all hover:scale-105" style={{ background: '#E63946', borderRadius: '12px 2px 12px 2px' }}>
-              Sign Out
+            <button 
+              onClick={onConfirm} 
+              disabled={isLoading}
+              className="flex-1 py-2 text-sm font-bold text-white transition-all hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2" 
+              style={{ background: '#E63946', borderRadius: '12px 2px 12px 2px' }}
+            >
+              {isLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+              {isLoading ? 'Signing Out...' : 'Sign Out'}
             </button>
           </div>
         </div>
@@ -50,6 +62,7 @@ export default function Settings() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const [showSignOutModal, setShowSignOutModal] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   const menuItems = [
     {
@@ -96,9 +109,16 @@ export default function Settings() {
   ]
 
   const handleSignOut = () => {
-    logout()
-    toast.success('Signed out successfully')
-    navigate('/login')
+    if (isSigningOut) return
+    setIsSigningOut(true)
+    
+    // Small delay to show spinner
+    setTimeout(() => {
+      logout()
+      toast.success('Signed out successfully')
+      navigate('/login')
+      setIsSigningOut(false)
+    }, 600)
   }
 
   return (
@@ -121,6 +141,7 @@ export default function Settings() {
         <SignOutModal 
           onClose={() => setShowSignOutModal(false)} 
           onConfirm={handleSignOut}
+          isLoading={isSigningOut}
         />
       )}
 
@@ -168,11 +189,7 @@ export default function Settings() {
                 <h2 className="text-lg font-bold tracking-wide" style={{ color: '#1a1a2e' }}>
                   {user?.displayName || user?.username}
                 </h2>
-                {user?.isVerified && (
-                  <span className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1" style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
-                    <Star size={10} /> Verified
-                  </span>
-                )}
+                {/* ✅ REMOVED: "Verified" text badge */}
               </div>
               <p className="text-sm" style={{ color: '#999' }}>@{user?.username}</p>
               {user?.bio && (
@@ -181,7 +198,8 @@ export default function Settings() {
             </div>
             <button 
               onClick={() => setShowSignOutModal(true)} 
-              className="p-2 transition-all duration-200 hover:bg-red-50 hover:scale-105 active:scale-95"
+              disabled={isSigningOut}
+              className="p-2 transition-all duration-200 hover:bg-red-50 hover:scale-105 active:scale-95 disabled:opacity-50"
               style={{ color: '#E63946', borderRadius: '12px 2px 12px 2px' }}
             >
               <LogOut size={20} />
@@ -285,14 +303,16 @@ export default function Settings() {
         <div className="mt-6 block lg:hidden">
           <button 
             onClick={() => setShowSignOutModal(true)} 
-            className="w-full flex items-center justify-center gap-2 p-4 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-98"
+            disabled={isSigningOut}
+            className="w-full flex items-center justify-center gap-2 p-4 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-98 disabled:opacity-50"
             style={{ 
               background: 'rgba(230,57,70,0.1)', 
               color: '#E63946',
               borderRadius: '16px 2px 16px 2px'
             }}
           >
-            <LogOut size={18} /> Sign Out
+            {isSigningOut ? <Loader2 size={18} className="animate-spin" /> : <LogOut size={18} />}
+            {isSigningOut ? 'Signing Out...' : 'Sign Out'}
           </button>
         </div>
 

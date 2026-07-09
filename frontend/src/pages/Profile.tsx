@@ -6,7 +6,8 @@ import {
   Settings, Users, FileText, MessageCircle, Camera, Sparkles, Calendar, 
   Heart, MessageSquare, Share2, Grid, Info, Palette, Check, X,
   Copy, CheckCircle, ChevronDown, ChevronUp, Bookmark, MapPin, Globe, 
-  Link as LinkIcon, User as UserIcon, AtSign, Clock, Award, ArrowLeft
+  Link as LinkIcon, User as UserIcon, AtSign, Clock, Award, ArrowLeft,
+  Loader2
 } from 'lucide-react'
 import api from '../lib/api'
 import { useAuthStore } from '../stores/authStore'
@@ -17,19 +18,18 @@ import toast from 'react-hot-toast'
 
 type ProfileTab = 'posts' | 'saved' | 'about'
 
-// Social Media Icons - Only Snapchat
+// Social Media Icons (unchanged)
 const FacebookIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32"><path d="M16,2c-7.732,0-14,6.268-14,14,0,6.566,4.52,12.075,10.618,13.588v-9.31h-2.887v-4.278h2.887v-1.843c0-4.765,2.156-6.974,6.835-6.974,.887,0,2.417,.174,3.043,.348v3.878c-.33-.035-.904-.052-1.617-.052-2.296,0-3.183,.87-3.183,3.13v1.513h4.573l-.786,4.278h-3.787v9.619c6.932-.837,12.304-6.74,12.304-13.897,0-7.732-6.268-14-14-14Z" fill="#1877F2"/></svg>)
 const WhatsAppIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32"><path d="M25.873,6.069c-2.619-2.623-6.103-4.067-9.814-4.069C8.411,2,2.186,8.224,2.184,15.874c-.001,2.446,.638,4.833,1.852,6.936l-1.969,7.19,7.355-1.929c2.026,1.106,4.308,1.688,6.63,1.689h.006c7.647,0,13.872-6.224,13.874-13.874,.001-3.708-1.44-7.193-4.06-9.815h0Zm-9.814,21.347h-.005c-2.069,0-4.099-.557-5.87-1.607l-.421-.25-4.365,1.145,1.165-4.256-.274-.436c-1.154-1.836-1.764-3.958-1.763-6.137,.003-6.358,5.176-11.531,11.537-11.531,3.08,.001,5.975,1.202,8.153,3.382,2.177,2.179,3.376,5.077,3.374,8.158-.003,6.359-5.176,11.532-11.532,11.532h0Zm6.325-8.636c-.347-.174-2.051-1.012-2.369-1.128-.318-.116-.549-.174-.78,.174-.231,.347-.895,1.128-1.098,1.359-.202,.232-.405,.26-.751,.086-.347-.174-1.464-.54-2.788-1.72-1.03-.919-1.726-2.054-1.929-2.402-.202-.347-.021-.535,.152-.707,.156-.156,.347-.405,.52-.607,.174-.202,.231-.347,.347-.578,.116-.232,.058-.434-.029-.607-.087-.174-.78-1.88-1.069-2.574-.281-.676-.567-.584-.78-.595-.202-.01-.433-.012-.665-.012s-.607,.086-.925,.434c-.318,.347-1.213,1.186-1.213,2.892s1.242,3.355,1.416,3.587c.174,.232,2.445,3.733,5.922,5.235,.827,.357,1.473,.571,1.977,.73,.83,.264,1.586,.227,2.183,.138,.666-.1,2.051-.839,2.34-1.649,.289-.81,.289-1.504,.202-1.649s-.318-.232-.665-.405h0Z" fill="#25D366"/></svg>)
 const TelegramIcon = () => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32"><path d="M16,2c-7.732,0-14,6.268-14,14s6.268,14,14,14,14-6.268,14-14S23.732,2,16,2Zm6.489,9.521c-.211,2.214-1.122,7.586-1.586,10.065-.196,1.049-.583,1.401-.957,1.435-.813,.075-1.43-.537-2.218-1.053-1.232-.808-1.928-1.311-3.124-2.099-1.382-.911-.486-1.412,.302-2.23,.206-.214,3.788-3.472,3.858-3.768,.009-.037,.017-.175-.065-.248-.082-.073-.203-.048-.29-.028-.124,.028-2.092,1.329-5.905,3.903-.559,.384-1.065,.571-1.518,.561-.5-.011-1.461-.283-2.176-.515-.877-.285-1.574-.436-1.513-.92,.032-.252,.379-.51,1.042-.773,4.081-1.778,6.803-2.95,8.164-3.517,3.888-1.617,4.696-1.898,5.222-1.907,.116-.002,.375,.027,.543,.163,.142,.115,.181,.27,.199,.379,.019,.109,.042,.357,.023,.551Z" fill="#0088cc"/></svg>)
 
-// Snapchat SVG Icon
 const SnapchatIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32">
     <path d="M30.893,22.837c-.208-.567-.606-.871-1.058-1.122-.085-.05-.163-.09-.23-.12-.135-.07-.273-.137-.41-.208-1.41-.747-2.51-1.69-3.274-2.808-.217-.315-.405-.648-.562-.996-.065-.186-.062-.292-.015-.389,.046-.074,.108-.138,.18-.188,.242-.16,.492-.323,.661-.432,.302-.195,.541-.35,.695-.46,.579-.405,.983-.835,1.236-1.315,.357-.672,.404-1.466,.13-2.175-.383-1.009-1.336-1.635-2.49-1.635-.243,0-.486,.025-.724,.077-.064,.014-.127,.028-.189,.044,.011-.69-.005-1.418-.066-2.135-.218-2.519-1.1-3.84-2.02-4.893-.589-.66-1.283-1.218-2.053-1.653-1.396-.797-2.979-1.202-4.704-1.202s-3.301,.405-4.698,1.202c-.773,.434-1.468,.994-2.057,1.656-.92,1.053-1.802,2.376-2.02,4.893-.061,.717-.077,1.449-.067,2.135-.062-.016-.125-.031-.189-.044-.238-.051-.481-.077-.724-.077-1.155,0-2.109,.626-2.491,1.635-.276,.71-.23,1.505,.126,2.178,.254,.481,.658,.911,1.237,1.315,.153,.107,.393,.262,.695,.46,.163,.106,.402,.261,.635,.415,.082,.053,.151,.123,.204,.205,.049,.1,.051,.208-.022,.408-.155,.341-.34,.668-.553,.976-.747,1.092-1.815,2.018-3.179,2.759-.723,.383-1.474,.639-1.791,1.502-.239,.651-.083,1.391,.525,2.015h0c.223,.233,.482,.429,.766,.58,.592,.326,1.222,.578,1.876,.75,.135,.035,.263,.092,.379,.169,.222,.194,.19,.486,.485,.914,.148,.221,.336,.412,.555,.564,.619,.428,1.315,.455,2.053,.483,.666,.025,1.421,.054,2.283,.339,.357,.118,.728,.346,1.158,.613,1.032,.635,2.446,1.503,4.811,1.503s3.789-.873,4.829-1.51c.427-.262,.796-.488,1.143-.603,.862-.285,1.617-.313,2.283-.339,.737-.028,1.433-.055,2.053-.483,.259-.181,.475-.416,.632-.69,.212-.361,.207-.613,.406-.789,.109-.074,.229-.129,.356-.162,.662-.173,1.301-.428,1.901-.757,.302-.162,.575-.375,.805-.63l.008-.009c.57-.61,.714-1.329,.48-1.964Zm-2.102,1.13c-1.282,.708-2.135,.632-2.798,1.059-.563,.363-.23,1.144-.639,1.426-.503,.347-1.989-.025-3.909,.609-1.584,.524-2.594,2.029-5.442,2.029s-3.835-1.502-5.444-2.033c-1.916-.634-3.406-.262-3.909-.609-.409-.282-.077-1.064-.639-1.426-.664-.427-1.516-.351-2.798-1.055-.816-.451-.353-.73-.081-.862,4.645-2.249,5.386-5.721,5.419-5.979,.04-.312,.084-.557-.259-.875-.332-.307-1.804-1.218-2.213-1.503-.676-.472-.973-.944-.754-1.523,.153-.401,.527-.552,.92-.552,.124,0,.248,.014,.369,.041,.742,.161,1.462,.533,1.879,.633,.05,.013,.102,.02,.153,.021,.222,0,.3-.112,.285-.366-.048-.812-.162-2.394-.034-3.872,.176-2.034,.831-3.042,1.61-3.934,.374-.428,2.132-2.286,5.493-2.286s5.123,1.85,5.497,2.276c.78,.891,1.436,1.899,1.61,3.934,.128,1.479,.018,3.061-.034,3.872-.018,.268,.063,.366,.285,.366,.052,0,.103-.008,.153-.021,.417-.1,1.137-.472,1.879-.633,.121-.027,.245-.041,.369-.041,.395,0,.766,.153,.92,.552,.219,.579-.077,1.051-.753,1.523-.409,.285-1.881,1.196-2.213,1.503-.344,.317-.299,.563-.259,.875,.033,.261,.773,3.734,5.419,5.979,.274,.137,.737,.416-.079,.871Z" fill="#FFFC00"/>
   </svg>
 )
 
-// Share Modal
+// Share Modal (unchanged)
 function ShareModal({ isOpen, onClose, username, displayName, avatarUrl }: { 
   isOpen: boolean; 
   onClose: () => void; 
@@ -125,7 +125,7 @@ export default function Profile() {
   const [tab, setTab] = useState<ProfileTab>('posts')
   const [showShareModal, setShowShareModal] = useState(false)
 
-  // OPTIMIZED: User profile query with caching
+  // User profile query
   const { data: ud, isLoading: userLoading, error } = useQuery({ 
     queryKey: ['user', username], 
     queryFn: async () => {
@@ -149,7 +149,7 @@ export default function Profile() {
     retryDelay: 5000,
   })
   
-  // OPTIMIZED: User posts query with caching
+  // User posts query
   const { data: pd, isLoading: postsLoading } = useQuery({ 
     queryKey: ['user-posts', ud?.user?._id || ud?._id], 
     queryFn: async () => {
@@ -173,7 +173,7 @@ export default function Profile() {
     retryDelay: 5000,
   })
 
-  // OPTIMIZED: Saved posts query with caching
+  // Saved posts query
   const { data: savedData, isLoading: savedLoading } = useQuery({ 
     queryKey: ['user-saved', ud?.user?._id || ud?._id], 
     queryFn: async () => {
@@ -197,10 +197,23 @@ export default function Profile() {
     retryDelay: 5000,
   })
 
+  // ✅ Follow mutation with loading state
   const followMutation = useMutation({
     mutationFn: () => api.post(`/users/${(ud?.user?._id || ud?._id)}/follow`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['user', username] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['user', username] })
+      qc.invalidateQueries({ queryKey: ['users'] })
+      toast.success(u.isFollowing ? 'Unfollowed' : 'Followed')
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to update follow status')
+    }
   })
+
+  const u = ud?.user
+  const isMe = me?._id === u?._id
+  const isFollowing = u?.isFollowing || false
+  const isFollowingLoading = followMutation.isPending
 
   if (userLoading) {
     return (
@@ -226,9 +239,6 @@ export default function Profile() {
       </div>
     )
   }
-
-  const u = ud.user
-  const isMe = me?._id === u._id
 
   const defaultBanners = [
     '/defaults/banners/banner1.jpg',
@@ -258,6 +268,12 @@ export default function Profile() {
     'non-binary': 'Non-binary',
     other: 'Other',
     'prefer-not-to-say': 'Prefer not to say'
+  }
+
+  // ✅ Handle follow/unfollow with loading state
+  const handleFollow = () => {
+    if (isFollowingLoading) return
+    followMutation.mutate()
   }
 
   return (
@@ -294,7 +310,6 @@ export default function Profile() {
           <img src={bannerUrl} className="w-full h-full object-cover" alt="Banner" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#FFF8EE]" />
           
-          {/* --- BACK BUTTON --- */}
           <button
             onClick={() => navigate(-1)}
             className="absolute top-3 left-3 sm:top-4 sm:left-4 p-2 rounded-xl backdrop-blur-md transition-all duration-200 hover:scale-105 active:scale-95 z-20 group"
@@ -317,7 +332,7 @@ export default function Profile() {
 
         {/* Profile Info */}
         <div className="max-w-2xl mx-auto px-4 -mt-10 relative z-10">
-          {/* Avatar - Centered */}
+          {/* Avatar */}
           <div className="flex flex-col items-center mb-4">
             <div className="relative -mt-6">
               <img 
@@ -333,24 +348,24 @@ export default function Profile() {
               )}
             </div>
             
-            {/* Name & Username - Centered */}
             <div className="text-center mt-3">
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#1a1a2e' }}>{u.displayName || u.username}</h1>
+                {/* ✅ REMOVED: Verified badge */}
                 {u.isPremium && <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-[#E63946] to-[#FF6B7A] text-white font-bold">PRO</span>}
               </div>
               <p className="text-sm" style={{ color: '#999' }}>@{u.username}</p>
             </div>
           </div>
 
-          {/* Bio - Centered */}
+          {/* Bio */}
           {u.bio && (
             <div className="text-center mb-4 px-4">
               <p className="text-sm leading-relaxed" style={{ color: '#666' }}>{u.bio}</p>
             </div>
           )}
 
-          {/* Stats Row - Centered */}
+          {/* Stats Row */}
           <div className="flex justify-center gap-6 py-3 border-y" style={{ borderColor: 'rgba(230,57,70,0.08)' }}>
             <div className="text-center">
               <div className="font-bold text-base" style={{ color: '#1a1a2e' }}>{u.postsCount || 0}</div>
@@ -372,26 +387,54 @@ export default function Profile() {
             </button>
           </div>
 
-          {/* Action Buttons */}
+          {/* ✅ Action Buttons - With Spinners */}
           <div className="flex gap-3 mt-4">
             {isMe ? (
               <>
                 <Link to="/settings" className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition border hover:scale-105" style={{ background: 'transparent', color: '#1a1a2e', borderColor: 'rgba(230, 57, 70, 0.2)' }}>
                   <Settings size={16} /> Edit Profile
                 </Link>
-                <button onClick={() => setShowShareModal(true)} className="flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium transition border hover:scale-105" style={{ background: 'transparent', color: '#999', borderColor: 'rgba(230, 57, 70, 0.2)' }}>
+                <button 
+                  onClick={() => setShowShareModal(true)} 
+                  className="flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium transition border hover:scale-105" 
+                  style={{ background: 'transparent', color: '#999', borderColor: 'rgba(230, 57, 70, 0.2)' }}
+                >
                   <Share2 size={16} />
                 </button>
               </>
             ) : (
               <>
-                <button onClick={() => followMutation.mutate()} className="flex-1 py-2.5 rounded-full text-sm font-medium transition hover:opacity-80" style={{ background: u.isFollowing ? 'transparent' : '#1a1a2e', color: u.isFollowing ? '#1a1a2e' : '#fff', border: u.isFollowing ? '1px solid rgba(230, 57, 70, 0.3)' : 'none' }}>
-                  {u.isFollowing ? 'Unfollow' : 'Follow'}
+                {/* ✅ Follow/Unfollow Button with Spinner */}
+                <button 
+                  onClick={handleFollow} 
+                  disabled={isFollowingLoading}
+                  className="flex-1 py-2.5 rounded-full text-sm font-medium transition hover:opacity-80 disabled:opacity-50 flex items-center justify-center gap-2"
+                  style={{ 
+                    background: isFollowing ? 'transparent' : '#1a1a2e', 
+                    color: isFollowing ? '#1a1a2e' : '#fff', 
+                    border: isFollowing ? '1px solid rgba(230, 57, 70, 0.3)' : 'none' 
+                  }}
+                >
+                  {isFollowingLoading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : null}
+                  {isFollowingLoading ? (isFollowing ? 'Unfollowing...' : 'Following...') : (isFollowing ? 'Unfollow' : 'Follow')}
                 </button>
-                <Link to={`/messages/${u._id}`} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition border hover:scale-105" style={{ background: 'transparent', color: '#E63946', borderColor: 'rgba(230, 57, 70, 0.3)' }}>
+                
+                {/* ✅ Message Button */}
+                <Link 
+                  to={`/messages/${u._id}`} 
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition border hover:scale-105"
+                  style={{ background: 'transparent', color: '#E63946', borderColor: 'rgba(230, 57, 70, 0.3)' }}
+                >
                   <MessageCircle size={16} /> Message
                 </Link>
-                <button onClick={() => setShowShareModal(true)} className="flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium transition border hover:scale-105" style={{ background: 'transparent', color: '#999', borderColor: 'rgba(230, 57, 70, 0.2)' }}>
+                
+                <button 
+                  onClick={() => setShowShareModal(true)} 
+                  className="flex items-center justify-center w-10 h-10 rounded-full text-sm font-medium transition border hover:scale-105" 
+                  style={{ background: 'transparent', color: '#999', borderColor: 'rgba(230, 57, 70, 0.2)' }}
+                >
                   <Share2 size={16} />
                 </button>
               </>

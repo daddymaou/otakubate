@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   Camera, Upload, Check, X, Image as ImageIcon, ArrowLeft, Save, 
   Palette, Image, User, Sparkles, Trash2, ZoomIn, AtSign, 
-  MapPin, Link as LinkIcon, Edit2, Clock, AlertCircle
+  MapPin, Link as LinkIcon, Edit2, Clock, AlertCircle, Loader2
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
@@ -307,6 +307,10 @@ export default function ProfileCustomization() {
     )
   }
 
+  // Handle loading states for all buttons
+  const isUsernameLoading = updateUsernameMutation.isPending
+  const isProfileLoading = updateProfileMutation.isPending || isSaving
+
   return (
     <div className="min-h-screen pb-32" style={{ background: 'linear-gradient(135deg, #FFF8EE 0%, #FFE8E8 100%)' }}>
       {/* Zoom Modal */}
@@ -337,14 +341,15 @@ export default function ProfileCustomization() {
         </h1>
         <button
           onClick={handleSave}
-          disabled={!hasChanges() || isSaving}
-          className="px-4 sm:px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 disabled:opacity-40 hover:scale-105 active:scale-95"
+          disabled={!hasChanges() || isProfileLoading}
+          className="px-4 sm:px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 disabled:opacity-40 hover:scale-105 active:scale-95 flex items-center gap-1.5"
           style={{
             background: hasChanges() ? '#E63946' : 'rgba(230, 57, 70, 0.2)',
             color: hasChanges() ? '#fff' : '#999'
           }}
         >
-          {isSaving ? <Spinner size={14} color="white" /> : 'Save'}
+          {isProfileLoading ? <Loader2 size={14} className="animate-spin" /> : null}
+          {isProfileLoading ? 'Saving...' : 'Save'}
         </button>
       </div>
 
@@ -386,7 +391,7 @@ export default function ProfileCustomization() {
             <div className="pl-[70px] sm:pl-20 pt-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-bold text-base sm:text-lg" style={{ color: '#1a1a2e' }}>{form.displayName || user?.username}</h3>
-                {user?.isVerified && <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-100 text-green-600">✓</span>}
+                {/* ✅ REMOVED: Verified badge */}
               </div>
               <p className="text-xs" style={{ color: '#999' }}>@{user?.username}</p>
               {form.bio && <p className="text-xs mt-1 line-clamp-1" style={{ color: '#666' }}>{form.bio}</p>}
@@ -438,7 +443,7 @@ export default function ProfileCustomization() {
           </button>
         </div>
 
-        {/* Profile Info Tab - With proper scrolling */}
+        {/* Profile Info Tab */}
         {activeTab === 'info' && (
           <div className="space-y-3 sm:space-y-4 pb-4">
             {/* Username Section */}
@@ -460,12 +465,17 @@ export default function ProfileCustomization() {
                         autoFocus
                       />
                     </div>
-                    <button onClick={handleUsernameSave} disabled={updateUsernameMutation.isPending || !usernameAvailable} 
-                      className="p-2 rounded-lg hover:bg-black/5 disabled:opacity-50">
-                      <Check size={16} style={{ color: usernameAvailable ? '#10B981' : '#999' }} />
+                    <button 
+                      onClick={handleUsernameSave} 
+                      disabled={isUsernameLoading || !usernameAvailable} 
+                      className="p-2 rounded-lg hover:bg-black/5 disabled:opacity-50 flex items-center justify-center"
+                    >
+                      {isUsernameLoading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} style={{ color: usernameAvailable ? '#10B981' : '#999' }} />}
                     </button>
-                    <button onClick={() => { setIsEditingUsername(false); setNewUsername(user?.username || ''); setUsernameAvailable(null) }} 
-                      className="p-2 rounded-lg hover:bg-black/5">
+                    <button 
+                      onClick={() => { setIsEditingUsername(false); setNewUsername(user?.username || ''); setUsernameAvailable(null) }} 
+                      className="p-2 rounded-lg hover:bg-black/5"
+                    >
                       <X size={16} style={{ color: '#E63946' }} />
                     </button>
                   </div>
@@ -644,12 +654,12 @@ export default function ProfileCustomization() {
             <div className="grid grid-cols-4 gap-2 sm:gap-3">
               {DEFAULT_AVATARS.map((avatar) => (
                 <button key={avatar.id} onClick={() => handleSelectDefaultAvatar(avatar.path)} className="relative group">
-           <div 
-  className={`rounded-full transition-all duration-200 ${selectedAvatar === avatar.path && avatarType === 'default' ? 'ring-2 ring-offset-2' : 'hover:scale-105'}`} 
-  style={{ outlineColor: '#E63946' }}
->
-  <img src={avatar.path} className="w-full aspect-square rounded-full object-cover" alt="" />
-</div>
+                  <div 
+                    className={`rounded-full transition-all duration-200 ${selectedAvatar === avatar.path && avatarType === 'default' ? 'ring-2 ring-offset-2' : 'hover:scale-105'}`} 
+                    style={{ outlineColor: '#E63946' }}
+                  >
+                    <img src={avatar.path} className="w-full aspect-square rounded-full object-cover" alt="" />
+                  </div>
                   {selectedAvatar === avatar.path && avatarType === 'default' && <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#E63946] flex items-center justify-center shadow-md"><Check size={12} className="text-white" /></div>}
                 </button>
               ))}
@@ -728,8 +738,14 @@ export default function ProfileCustomization() {
                 >
                   Discard
                 </button>
-                <button onClick={handleSave} disabled={isSaving} className="px-4 sm:px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 hover:scale-105 active:scale-95" style={{ background: '#E63946', color: '#fff' }}>
-                  {isSaving ? <Spinner size={14} color="white" /> : 'Save'}
+                <button 
+                  onClick={handleSave} 
+                  disabled={isProfileLoading} 
+                  className="px-4 sm:px-5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 hover:scale-105 active:scale-95 flex items-center gap-1.5" 
+                  style={{ background: '#E63946', color: '#fff' }}
+                >
+                  {isProfileLoading ? <Loader2 size={14} className="animate-spin" /> : null}
+                  {isProfileLoading ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>

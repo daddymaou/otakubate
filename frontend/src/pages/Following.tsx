@@ -147,7 +147,10 @@ export default function Following() {
                         ) : (
                           <UserPlus size={12} />
                         )}
-                        {isFollowing ? 'Unfollow' : 'Follow'}
+                        {followMutation.isPending 
+                          ? (isFollowing ? 'Unfollowing...' : 'Following...')
+                          : (isFollowing ? 'Unfollow' : 'Follow')
+                        }
                       </button>
                     )}
                   </div>

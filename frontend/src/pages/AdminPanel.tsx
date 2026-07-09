@@ -5,7 +5,9 @@ import {
   Search, AlertTriangle, Activity, Calendar, MessageCircle, 
   Home, UserCheck, UserX, Trash2, RefreshCw,
   ArrowUp, ArrowDown, BarChart3, Crown, TrendingDown, 
-  PieChart, LineChart, Clock, Zap, Eye
+  PieChart, LineChart, Clock, Zap, Eye, LayoutDashboard,
+  UserCog, ClipboardList, Settings, ChevronRight, Menu,
+  X, Plus, Minus, Sparkles, Award, Target, Gift
 } from 'lucide-react'
 import { 
   LineChart as ReLineChart, 
@@ -33,8 +35,16 @@ import toast from 'react-hot-toast'
 
 type Tab = 'dashboard' | 'users' | 'posts' | 'comments' | 'clubs'
 
-// Color palette for charts
 const COLORS = ['#E63946', '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EC4899', '#14B8A6', '#F97316']
+
+// Sidebar navigation items
+const navItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: '#E63946' },
+  { id: 'users', label: 'Users', icon: Users, color: '#3B82F6' },
+  { id: 'posts', label: 'Posts', icon: FileText, color: '#10B981' },
+  { id: 'comments', label: 'Comments', icon: MessageCircle, color: '#8B5CF6' },
+  { id: 'clubs', label: 'Clubs', icon: Home, color: '#F59E0B' },
+]
 
 export default function AdminPanel() {
   const { user } = useAuthStore()
@@ -44,6 +54,7 @@ export default function AdminPanel() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUserId, setSelectedUserId] = useState('')
   const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month'>('day')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   if (!user?.isAdmin) {
     navigate('/feed')
@@ -141,9 +152,7 @@ export default function AdminPanel() {
   const stats = statsData?.stats || {}
   const today = stats?.today || {}
 
-  // ============================================
-  // CHART DATA - Simulated for now
-  // ============================================
+  // Generate mock chart data
   const generateMockData = () => {
     const data = []
     const now = new Date()
@@ -162,23 +171,18 @@ export default function AdminPanel() {
 
   const activityData = generateMockData()
 
-  // Pie chart data - User distribution
   const pieData = [
     { name: 'Active Users', value: stats.totalUsers - (stats.totalUsers * 0.15) || 1 },
     { name: 'Banned Users', value: Math.floor(stats.totalUsers * 0.05) || 1 },
     { name: 'Inactive', value: Math.floor(stats.totalUsers * 0.1) || 1 },
   ].filter(d => d.value > 0)
 
-  // Pie chart data - Content distribution
   const contentPieData = [
     { name: 'Posts', value: stats.totalPosts || 1 },
     { name: 'Comments', value: stats.totalComments || 1 },
     { name: 'Clubs', value: stats.totalClubs || 1 },
   ].filter(d => d.value > 0)
 
-  // ============================================
-  // STAT CARDS
-  // ============================================
   const statCards = [
     { 
       label: 'Total Users', 
@@ -225,77 +229,87 @@ export default function AdminPanel() {
   // ============================================
   // RENDER FUNCTIONS
   // ============================================
+
+  // Premium Stat Cards
   const renderStats = () => (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      {statCards.map((s) => (
+      {statCards.map((s, index) => (
         <div 
           key={s.label} 
-          className="p-4 rounded-2xl transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+          className="group relative p-5 rounded-2xl transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl overflow-hidden"
           style={{
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(230, 57, 70, 0.08)'
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(230, 57, 70, 0.08)',
+            animation: `fadeInUp 0.5s ease ${index * 0.1}s both`
           }}
         >
-          <div className="flex items-center justify-between">
+          {/* Premium glow effect */}
+          <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" style={{ background: `${s.color}10`, filter: 'blur(40px)' }} />
+          
+          <div className="relative z-10 flex items-center justify-between">
             <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
               style={{ background: s.bg }}
             >
-              <s.icon size={18} style={{ color: s.color }} />
+              <s.icon size={20} style={{ color: s.color }} />
             </div>
             {s.change > 0 && (
-              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5" style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
+              <span className="text-[10px] font-medium px-2 py-1 rounded-full flex items-center gap-0.5" style={{ background: 'rgba(16,185,129,0.12)', color: '#10B981' }}>
                 <ArrowUp size={10} /> +{s.change}
               </span>
             )}
           </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold" style={{ color: '#1a1a2e' }}>
+          <div className="relative z-10 mt-4">
+            <div className="text-3xl font-bold tracking-tight" style={{ color: '#1a1a2e' }}>
               {s.value?.toLocaleString() ?? '—'}
             </div>
-            <div className="text-xs mt-0.5" style={{ color: '#999' }}>{s.label}</div>
+            <div className="text-xs mt-1 font-medium uppercase tracking-wider" style={{ color: '#999' }}>{s.label}</div>
+          </div>
+          {/* Progress bar */}
+          <div className="relative z-10 mt-3 h-1 rounded-full" style={{ background: 'rgba(0,0,0,0.05)' }}>
+            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(s.value / 100, 100)}%`, background: s.color }} />
           </div>
         </div>
       ))}
     </div>
   )
 
-  // ============================================
-  // FOREX-STYLE CHARTS
-  // ============================================
+  // Charts Section
   const renderCharts = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-      {/* Activity Line Chart */}
-      <div 
-        className="p-5 rounded-2xl"
-        style={{
-          background: 'rgba(255, 255, 255, 0.6)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(230, 57, 70, 0.08)'
-        }}
-      >
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+      {/* Main Activity Chart - Takes 2 columns */}
+      <div className="lg:col-span-2 p-6 rounded-2xl transition-all duration-300 hover:shadow-xl" style={{
+        background: 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(230, 57, 70, 0.08)'
+      }}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <LineChart size={18} style={{ color: '#E63946' }} />
-            <h3 className="font-semibold text-sm" style={{ color: '#1a1a2e' }}>Activity Trend</h3>
+            <div className="p-2 rounded-xl" style={{ background: 'rgba(230,57,70,0.08)' }}>
+              <TrendingUp size={16} style={{ color: '#E63946' }} />
+            </div>
+            <h3 className="font-bold text-sm" style={{ color: '#1a1a2e' }}>Activity Overview</h3>
           </div>
           <div className="flex gap-1">
             {['day', 'week', 'month'].map((t) => (
               <button
                 key={t}
                 onClick={() => setTimeframe(t as any)}
-                className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
-                  timeframe === t ? 'bg-[#E63946] text-white' : 'hover:bg-black/5'
+                className={`px-3 py-1 rounded-lg text-[10px] font-medium transition-all duration-200 hover:scale-105 ${
+                  timeframe === t ? 'text-white' : 'hover:bg-black/5'
                 }`}
-                style={{ color: timeframe === t ? '#fff' : '#999' }}
+                style={{ 
+                  background: timeframe === t ? '#E63946' : 'transparent',
+                  color: timeframe === t ? '#fff' : '#999'
+                }}
               >
                 {t.charAt(0).toUpperCase() + t.slice(1)}
               </button>
             ))}
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={activityData}>
             <defs>
               <linearGradient id="usersGrad" x1="0" y1="0" x2="0" y2="1">
@@ -315,7 +329,8 @@ export default function AdminPanel() {
                 background: '#FFF8EE', 
                 border: '1px solid rgba(230,57,70,0.1)',
                 borderRadius: '12px',
-                fontSize: '12px'
+                fontSize: '12px',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.08)'
               }} 
             />
             <Area type="monotone" dataKey="users" stroke="#3B82F6" fill="url(#usersGrad)" strokeWidth={2} />
@@ -325,29 +340,28 @@ export default function AdminPanel() {
         </ResponsiveContainer>
       </div>
 
-      {/* Pie Charts */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* User Distribution Pie */}
-        <div 
-          className="p-4 rounded-2xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(230, 57, 70, 0.08)'
-          }}
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <PieChart size={16} style={{ color: '#E63946' }} />
+      {/* Pie Charts - Takes 1 column */}
+      <div className="space-y-4">
+        {/* User Distribution */}
+        <div className="p-4 rounded-2xl transition-all duration-300 hover:shadow-xl" style={{
+          background: 'rgba(255, 255, 255, 0.7)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(230, 57, 70, 0.08)'
+        }}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 rounded-lg" style={{ background: 'rgba(139,92,246,0.08)' }}>
+              <PieChart size={14} style={{ color: '#8B5CF6' }} />
+            </div>
             <h4 className="font-semibold text-xs" style={{ color: '#1a1a2e' }}>User Distribution</h4>
           </div>
-          <ResponsiveContainer width="100%" height={160}>
+          <ResponsiveContainer width="100%" height={140}>
             <RePieChart>
               <Pie
                 data={pieData}
                 cx="50%"
                 cy="50%"
-                innerRadius={30}
-                outerRadius={60}
+                innerRadius={25}
+                outerRadius={50}
                 paddingAngle={2}
                 dataKey="value"
               >
@@ -360,12 +374,12 @@ export default function AdminPanel() {
                   background: '#FFF8EE', 
                   border: '1px solid rgba(230,57,70,0.1)',
                   borderRadius: '12px',
-                  fontSize: '11px'
+                  fontSize: '10px'
                 }} 
               />
             </RePieChart>
           </ResponsiveContainer>
-          <div className="flex flex-wrap justify-center gap-2 mt-2">
+          <div className="flex flex-wrap justify-center gap-2 mt-1">
             {pieData.map((entry, index) => (
               <div key={entry.name} className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full" style={{ background: COLORS[index % COLORS.length] }} />
@@ -375,27 +389,26 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {/* Content Distribution Pie */}
-        <div 
-          className="p-4 rounded-2xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.6)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(230, 57, 70, 0.08)'
-          }}
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <PieChart size={16} style={{ color: '#E63946' }} />
+        {/* Content Distribution */}
+        <div className="p-4 rounded-2xl transition-all duration-300 hover:shadow-xl" style={{
+          background: 'rgba(255, 255, 255, 0.7)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(230, 57, 70, 0.08)'
+        }}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 rounded-lg" style={{ background: 'rgba(16,185,129,0.08)' }}>
+              <PieChart size={14} style={{ color: '#10B981' }} />
+            </div>
             <h4 className="font-semibold text-xs" style={{ color: '#1a1a2e' }}>Content Distribution</h4>
           </div>
-          <ResponsiveContainer width="100%" height={160}>
+          <ResponsiveContainer width="100%" height={140}>
             <RePieChart>
               <Pie
                 data={contentPieData}
                 cx="50%"
                 cy="50%"
-                innerRadius={30}
-                outerRadius={60}
+                innerRadius={25}
+                outerRadius={50}
                 paddingAngle={2}
                 dataKey="value"
               >
@@ -408,12 +421,12 @@ export default function AdminPanel() {
                   background: '#FFF8EE', 
                   border: '1px solid rgba(230,57,70,0.1)',
                   borderRadius: '12px',
-                  fontSize: '11px'
+                  fontSize: '10px'
                 }} 
               />
             </RePieChart>
           </ResponsiveContainer>
-          <div className="flex flex-wrap justify-center gap-2 mt-2">
+          <div className="flex flex-wrap justify-center gap-2 mt-1">
             {contentPieData.map((entry, index) => (
               <div key={entry.name} className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full" style={{ background: COLORS[(index + 3) % COLORS.length] }} />
@@ -426,28 +439,24 @@ export default function AdminPanel() {
     </div>
   )
 
-  // ============================================
-  // RENDER: USERS TABLE
-  // ============================================
+  // Users Table
   const renderUsers = () => (
-    <div 
-      className="rounded-2xl overflow-hidden"
-      style={{
-        background: 'rgba(255, 255, 255, 0.6)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(230, 57, 70, 0.08)'
-      }}
-    >
-      <div className="px-5 py-4 flex items-center justify-between gap-3 flex-wrap" style={{ borderBottom: '1px solid rgba(230,57,70,0.08)' }}>
+    <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl" style={{
+      background: 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid rgba(230, 57, 70, 0.08)'
+    }}>
+      <div className="px-5 py-4 flex items-center justify-between gap-3 flex-wrap border-b" style={{ borderColor: 'rgba(230,57,70,0.06)' }}>
         <div className="flex items-center gap-2">
-          <Users size={18} style={{ color: '#E63946' }} />
-          <h2 className="font-semibold" style={{ color: '#1a1a2e' }}>Users</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>
+          <div className="p-2 rounded-xl" style={{ background: 'rgba(59,130,246,0.08)' }}>
+            <Users size={16} style={{ color: '#3B82F6' }} />
+          </div>
+          <h2 className="font-bold" style={{ color: '#1a1a2e' }}>User Management</h2>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.08)', color: '#E63946' }}>
             {usersData?.users?.length || 0}
           </span>
         </div>
-        
-        <div className="relative rounded-xl transition-all duration-200" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(230,57,70,0.15)', width: '100%', maxWidth: '260px' }}>
+        <div className="relative rounded-xl transition-all duration-200" style={{ background: 'rgba(255,255,255,0.6)', border: '1px solid rgba(230,57,70,0.12)', width: '100%', maxWidth: '260px' }}>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={14} style={{ color: '#999' }} />
           <input 
             value={searchQuery} 
@@ -462,16 +471,14 @@ export default function AdminPanel() {
       {usersLoading ? (
         <div className="flex justify-center py-12"><Spinner size={32} /></div>
       ) : usersData?.users?.length > 0 ? (
-        <div className="divide-y" style={{ borderColor: 'rgba(230,57,70,0.06)' }}>
+        <div className="divide-y" style={{ borderColor: 'rgba(230,57,70,0.04)' }}>
           {usersData.users.map((u: any) => (
-            <div key={u._id} className="flex items-center gap-3 p-4 flex-wrap sm:flex-nowrap hover:bg-white/[0.03]">
+            <div key={u._id} className="flex items-center gap-3 p-4 hover:bg-white/20 transition-all duration-200">
               <Avatar src={u.avatar} name={u.displayName || u.username} size={40} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="font-semibold text-sm" style={{ color: '#1a1a2e' }}>
-                    {u.displayName || u.username}
-                  </span>
-                              {u.isAdmin && <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>admin</span>}
+                  <span className="font-semibold text-sm" style={{ color: '#1a1a2e' }}>{u.displayName || u.username}</span>
+                  {u.isAdmin && <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>admin</span>}
                   {!u.isActive && <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ background: 'rgba(239,68,68,0.1)', color: '#EF4444' }}>banned</span>}
                 </div>
                 <div className="text-xs" style={{ color: '#999' }}>@{u.username} • {u.email}</div>
@@ -483,7 +490,7 @@ export default function AdminPanel() {
                     className="text-xs px-2.5 py-1.5 rounded-lg font-medium transition-all hover:scale-105"
                     style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}
                   >
-                    Make Admin
+                    Promote
                   </button>
                 )}
                 {u.isAdmin && u._id !== user._id && (
@@ -515,31 +522,24 @@ export default function AdminPanel() {
     </div>
   )
 
-  // ============================================
-  // RENDER: POSTS
-  // ============================================
+  // Posts
   const renderPosts = () => (
-    <div 
-      className="rounded-2xl overflow-hidden"
-      style={{
-        background: 'rgba(255, 255, 255, 0.6)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(230, 57, 70, 0.08)'
-      }}
-    >
-      <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(230,57,70,0.08)' }}>
+    <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl" style={{
+      background: 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid rgba(230, 57, 70, 0.08)'
+    }}>
+      <div className="px-5 py-4 flex items-center justify-between border-b" style={{ borderColor: 'rgba(230,57,70,0.06)' }}>
         <div className="flex items-center gap-2">
-          <FileText size={18} style={{ color: '#E63946' }} />
-          <h2 className="font-semibold" style={{ color: '#1a1a2e' }}>Posts</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>
+          <div className="p-2 rounded-xl" style={{ background: 'rgba(16,185,129,0.08)' }}>
+            <FileText size={16} style={{ color: '#10B981' }} />
+          </div>
+          <h2 className="font-bold" style={{ color: '#1a1a2e' }}>Posts</h2>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.08)', color: '#E63946' }}>
             {postsData?.posts?.length || 0}
           </span>
         </div>
-        <button 
-          onClick={() => refetchPosts()} 
-          className="p-1.5 rounded-lg hover:bg-black/5 transition"
-          style={{ color: '#999' }}
-        >
+        <button onClick={() => refetchPosts()} className="p-1.5 rounded-lg hover:bg-black/5 transition" style={{ color: '#999' }}>
           <RefreshCw size={14} />
         </button>
       </div>
@@ -547,30 +547,20 @@ export default function AdminPanel() {
       {postsLoading ? (
         <div className="flex justify-center py-12"><Spinner size={32} /></div>
       ) : postsData?.posts?.length > 0 ? (
-        <div className="divide-y" style={{ borderColor: 'rgba(230,57,70,0.06)' }}>
+        <div className="divide-y" style={{ borderColor: 'rgba(230,57,70,0.04)' }}>
           {postsData.posts.map((p: any) => (
-            <div key={p._id} className="p-4 hover:bg-white/[0.03]">
+            <div key={p._id} className="p-4 hover:bg-white/20 transition-all duration-200">
               <div className="flex items-start gap-3">
                 <Avatar src={p.author?.avatar} name={p.author?.displayName || p.author?.username} size={32} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm" style={{ color: '#1a1a2e' }}>
-                      {p.author?.displayName || p.author?.username}
-                    </span>
-                    <span className="text-xs" style={{ color: '#999' }}>
-                      {new Date(p.createdAt).toLocaleDateString()}
-                    </span>
+                    <span className="font-medium text-sm" style={{ color: '#1a1a2e' }}>{p.author?.displayName || p.author?.username}</span>
+                    <span className="text-xs" style={{ color: '#999' }}>{new Date(p.createdAt).toLocaleDateString()}</span>
                   </div>
                   <p className="text-sm mt-1 line-clamp-2" style={{ color: '#555' }}>{p.content}</p>
-                  {p.images?.length > 0 && (
-                    <div className="text-xs mt-1" style={{ color: '#999' }}>📷 {p.images.length} image(s)</div>
-                  )}
+                  {p.images?.length > 0 && <div className="text-xs mt-1" style={{ color: '#999' }}>📷 {p.images.length} image(s)</div>}
                 </div>
-                <button 
-                  onClick={() => deletePostMutation.mutate(p._id)}
-                  className="p-1.5 rounded-lg hover:bg-red-500/10 transition"
-                  style={{ color: '#EF4444' }}
-                >
+                <button onClick={() => deletePostMutation.mutate(p._id)} className="p-1.5 rounded-lg hover:bg-red-500/10 transition" style={{ color: '#EF4444' }}>
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -578,39 +568,29 @@ export default function AdminPanel() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <FileText size={48} className="mx-auto mb-3" style={{ color: '#ccc' }} />
-          <p className="text-sm" style={{ color: '#999' }}>No posts found</p>
-        </div>
+        <div className="text-center py-12"><FileText size={48} className="mx-auto mb-3" style={{ color: '#ccc' }} /><p className="text-sm" style={{ color: '#999' }}>No posts found</p></div>
       )}
     </div>
   )
 
-  // ============================================
-  // RENDER: COMMENTS
-  // ============================================
+  // Comments
   const renderComments = () => (
-    <div 
-      className="rounded-2xl overflow-hidden"
-      style={{
-        background: 'rgba(255, 255, 255, 0.6)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(230, 57, 70, 0.08)'
-      }}
-    >
-      <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(230,57,70,0.08)' }}>
+    <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl" style={{
+      background: 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid rgba(230, 57, 70, 0.08)'
+    }}>
+      <div className="px-5 py-4 flex items-center justify-between border-b" style={{ borderColor: 'rgba(230,57,70,0.06)' }}>
         <div className="flex items-center gap-2">
-          <MessageCircle size={18} style={{ color: '#E63946' }} />
-          <h2 className="font-semibold" style={{ color: '#1a1a2e' }}>Comments</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>
+          <div className="p-2 rounded-xl" style={{ background: 'rgba(139,92,246,0.08)' }}>
+            <MessageCircle size={16} style={{ color: '#8B5CF6' }} />
+          </div>
+          <h2 className="font-bold" style={{ color: '#1a1a2e' }}>Comments</h2>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.08)', color: '#E63946' }}>
             {commentsData?.comments?.length || 0}
           </span>
         </div>
-        <button 
-          onClick={() => refetchComments()} 
-          className="p-1.5 rounded-lg hover:bg-black/5 transition"
-          style={{ color: '#999' }}
-        >
+        <button onClick={() => refetchComments()} className="p-1.5 rounded-lg hover:bg-black/5 transition" style={{ color: '#999' }}>
           <RefreshCw size={14} />
         </button>
       </div>
@@ -618,27 +598,19 @@ export default function AdminPanel() {
       {commentsLoading ? (
         <div className="flex justify-center py-12"><Spinner size={32} /></div>
       ) : commentsData?.comments?.length > 0 ? (
-        <div className="divide-y" style={{ borderColor: 'rgba(230,57,70,0.06)' }}>
+        <div className="divide-y" style={{ borderColor: 'rgba(230,57,70,0.04)' }}>
           {commentsData.comments.map((c: any) => (
-            <div key={c._id} className="p-4 hover:bg-white/[0.03]">
+            <div key={c._id} className="p-4 hover:bg-white/20 transition-all duration-200">
               <div className="flex items-start gap-3">
                 <Avatar src={c.author?.avatar} name={c.author?.displayName || c.author?.username} size={32} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm" style={{ color: '#1a1a2e' }}>
-                      {c.author?.displayName || c.author?.username}
-                    </span>
-                    <span className="text-xs" style={{ color: '#999' }}>
-                      {new Date(c.createdAt).toLocaleDateString()}
-                    </span>
+                    <span className="font-medium text-sm" style={{ color: '#1a1a2e' }}>{c.author?.displayName || c.author?.username}</span>
+                    <span className="text-xs" style={{ color: '#999' }}>{new Date(c.createdAt).toLocaleDateString()}</span>
                   </div>
                   <p className="text-sm mt-1" style={{ color: '#555' }}>{c.content}</p>
                 </div>
-                <button 
-                  onClick={() => deleteCommentMutation.mutate(c._id)}
-                  className="p-1.5 rounded-lg hover:bg-red-500/10 transition"
-                  style={{ color: '#EF4444' }}
-                >
+                <button onClick={() => deleteCommentMutation.mutate(c._id)} className="p-1.5 rounded-lg hover:bg-red-500/10 transition" style={{ color: '#EF4444' }}>
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -646,39 +618,29 @@ export default function AdminPanel() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <MessageCircle size={48} className="mx-auto mb-3" style={{ color: '#ccc' }} />
-          <p className="text-sm" style={{ color: '#999' }}>No comments found</p>
-        </div>
+        <div className="text-center py-12"><MessageCircle size={48} className="mx-auto mb-3" style={{ color: '#ccc' }} /><p className="text-sm" style={{ color: '#999' }}>No comments found</p></div>
       )}
     </div>
   )
 
-  // ============================================
-  // RENDER: CLUBS
-  // ============================================
+  // Clubs
   const renderClubs = () => (
-    <div 
-      className="rounded-2xl overflow-hidden"
-      style={{
-        background: 'rgba(255, 255, 255, 0.6)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(230, 57, 70, 0.08)'
-      }}
-    >
-      <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(230,57,70,0.08)' }}>
+    <div className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl" style={{
+      background: 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid rgba(230, 57, 70, 0.08)'
+    }}>
+      <div className="px-5 py-4 flex items-center justify-between border-b" style={{ borderColor: 'rgba(230,57,70,0.06)' }}>
         <div className="flex items-center gap-2">
-          <Home size={18} style={{ color: '#E63946' }} />
-          <h2 className="font-semibold" style={{ color: '#1a1a2e' }}>Clubs</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.1)', color: '#E63946' }}>
+          <div className="p-2 rounded-xl" style={{ background: 'rgba(245,158,11,0.08)' }}>
+            <Home size={16} style={{ color: '#F59E0B' }} />
+          </div>
+          <h2 className="font-bold" style={{ color: '#1a1a2e' }}>Clubs</h2>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(230,57,70,0.08)', color: '#E63946' }}>
             {clubsData?.clubs?.length || 0}
           </span>
         </div>
-        <button 
-          onClick={() => refetchClubs()} 
-          className="p-1.5 rounded-lg hover:bg-black/5 transition"
-          style={{ color: '#999' }}
-        >
+        <button onClick={() => refetchClubs()} className="p-1.5 rounded-lg hover:bg-black/5 transition" style={{ color: '#999' }}>
           <RefreshCw size={14} />
         </button>
       </div>
@@ -686,66 +648,94 @@ export default function AdminPanel() {
       {clubsLoading ? (
         <div className="flex justify-center py-12"><Spinner size={32} /></div>
       ) : clubsData?.clubs?.length > 0 ? (
-        <div className="divide-y" style={{ borderColor: 'rgba(230,57,70,0.06)' }}>
+        <div className="divide-y" style={{ borderColor: 'rgba(230,57,70,0.04)' }}>
           {clubsData.clubs.map((c: any) => (
-            <div key={c._id} className="flex items-center gap-3 p-4 hover:bg-white/[0.03]">
+            <div key={c._id} className="flex items-center gap-3 p-4 hover:bg-white/20 transition-all duration-200">
               <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(230,57,70,0.1)' }}>
-                {c.avatar ? (
-                  <img src={c.avatar} className="w-full h-full rounded-full object-cover" alt={c.name} />
-                ) : (
-                  <Home size={18} style={{ color: '#E63946' }} />
-                )}
+                {c.avatar ? <img src={c.avatar} className="w-full h-full rounded-full object-cover" alt={c.name} /> : <Home size={18} style={{ color: '#E63946' }} />}
               </div>
               <div className="flex-1">
                 <span className="font-medium text-sm" style={{ color: '#1a1a2e' }}>{c.name}</span>
                 <span className="text-xs ml-2" style={{ color: '#999' }}>{c.membersCount || 0} members</span>
                 {c.description && <p className="text-xs truncate" style={{ color: '#999' }}>{c.description}</p>}
               </div>
-              <button 
-                onClick={() => deleteClubMutation.mutate(c._id)}
-                className="p-1.5 rounded-lg hover:bg-red-500/10 transition"
-                style={{ color: '#EF4444' }}
-              >
+              <button onClick={() => deleteClubMutation.mutate(c._id)} className="p-1.5 rounded-lg hover:bg-red-500/10 transition" style={{ color: '#EF4444' }}>
                 <Trash2 size={16} />
               </button>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <Home size={48} className="mx-auto mb-3" style={{ color: '#ccc' }} />
-          <p className="text-sm" style={{ color: '#999' }}>No clubs found</p>
-        </div>
+        <div className="text-center py-12"><Home size={48} className="mx-auto mb-3" style={{ color: '#ccc' }} /><p className="text-sm" style={{ color: '#999' }}>No clubs found</p></div>
       )}
     </div>
   )
+
+  // Quick Stats Summary (Dashboard only)
+  const renderQuickStats = () => {
+    const quickStats = [
+      { label: 'Active Users', value: stats.totalUsers || 0, color: '#3B82F6', icon: Users },
+      { label: 'Total Content', value: (stats.totalPosts || 0) + (stats.totalComments || 0), color: '#10B981', icon: FileText },
+      { label: 'Engagement', value: '--', color: '#8B5CF6', icon: TrendingUp },
+      { label: 'Today\'s Growth', value: today.newUsers || 0, color: '#E63946', icon: Sparkles },
+    ]
+
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {quickStats.map((item, index) => (
+          <div key={item.label} className="p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg" style={{ 
+            background: 'rgba(255,255,255,0.6)', 
+            border: '1px solid rgba(230,57,70,0.06)',
+            animation: `fadeInUp 0.4s ease ${index * 0.1}s both`
+          }}>
+            <div className="flex items-center justify-between">
+              <item.icon size={16} style={{ color: item.color }} />
+              <span className="text-[10px] font-medium" style={{ color: item.color }}>+{Math.floor(Math.random() * 10)}%</span>
+            </div>
+            <div className="text-xl font-bold mt-2" style={{ color: '#1a1a2e' }}>{item.value}</div>
+            <div className="text-[10px] uppercase tracking-wider" style={{ color: '#999' }}>{item.label}</div>
+          </div>
+        ))}
+      </div>
+    )
+  }
 
   // ============================================
   // MAIN RENDER
   // ============================================
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 pb-24">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-2xl" style={{ background: 'rgba(230,57,70,0.1)', border: '1px solid rgba(230,57,70,0.2)' }}>
-            <Shield size={24} style={{ color: '#E63946' }} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#1a1a2e' }}>Admin Dashboard</h1>
-            <p className="text-sm mt-0.5" style={{ color: '#999' }}>Real-time platform analytics and management</p>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #F5F0E8 0%, #FFE8E8 100%)' }}>
+      {/* Premium Header */}
+      <div className="sticky top-0 z-30 px-6 py-4 flex items-center justify-between" style={{
+        background: 'rgba(255, 248, 238, 0.92)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(230, 57, 70, 0.06)'
+      }}>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-xl hover:bg-black/5 transition-all duration-200 lg:hidden"
+          >
+            {sidebarOpen ? <X size={20} style={{ color: '#1a1a2e' }} /> : <Menu size={20} style={{ color: '#1a1a2e' }} />}
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-2xl" style={{ background: 'linear-gradient(135deg, #E63946, #FF6B7A)' }}>
+              <Shield size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight" style={{ color: '#1a1a2e' }}>Admin Panel</h1>
+              <p className="text-[10px] uppercase tracking-wider" style={{ color: '#999' }}>Platform Management</p>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs px-3 py-1.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              Live
-            </div>
+          <span className="text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5" style={{ background: 'rgba(16,185,129,0.1)', color: '#10B981' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            Live
           </span>
           <button 
             onClick={() => refetchStats()}
-            className="p-2 rounded-xl hover:bg-black/5 transition"
+            className="p-2 rounded-xl hover:bg-black/5 transition-all duration-200"
             style={{ color: '#666' }}
           >
             <RefreshCw size={16} />
@@ -753,75 +743,82 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      {statsLoading ? (
-        <div className="flex justify-center py-8"><Spinner size={32} /></div>
-      ) : (
-        renderStats()
-      )}
-
-      {/* Charts - Only on Dashboard */}
-      {activeTab === 'dashboard' && renderCharts()}
-
-      {/* Tabs */}
-      <div className="flex gap-1 mt-4 mb-4 overflow-x-auto pb-1">
-        {[
-          { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-          { id: 'users', label: 'Users', icon: Users },
-          { id: 'posts', label: 'Posts', icon: FileText },
-          { id: 'comments', label: 'Comments', icon: MessageCircle },
-          { id: 'clubs', label: 'Clubs', icon: Home },
-        ].map((tab) => {
-          const Icon = tab.icon
-          const isActive = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as Tab)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                isActive ? 'shadow-sm' : 'hover:bg-white/30'
-              }`}
-              style={{
-                background: isActive ? 'rgba(255,255,255,0.6)' : 'transparent',
-                color: isActive ? '#E63946' : '#666',
-                border: isActive ? '1px solid rgba(230,57,70,0.15)' : '1px solid transparent'
-              }}
-            >
-              <Icon size={16} />
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Tab Content */}
-      <div className="space-y-4">
-        {activeTab === 'dashboard' && (
-          <>
-            {/* Quick Stats Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: 'Active Users', value: stats.totalUsers || 0, color: '#3B82F6' },
-                { label: 'Total Content', value: (stats.totalPosts || 0) + (stats.totalComments || 0), color: '#10B981' },
-                { label: 'Engagement Rate', value: '--', color: '#8B5CF6' },
-                { label: 'Growth', value: today.newUsers || 0, color: '#E63946' },
-              ].map((item) => (
-                <div key={item.label} className="p-3 rounded-xl text-center" style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(230,57,70,0.06)' }}>
-                  <div className="text-lg font-bold" style={{ color: item.color }}>{item.value}</div>
-                  <div className="text-[10px]" style={{ color: '#999' }}>{item.label}</div>
-                </div>
-              ))}
+      <div className="flex">
+        {/* Sidebar */}
+        <div className={`fixed lg:relative z-20 w-64 h-[calc(100vh-72px)] transition-all duration-300 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`} style={{
+          background: 'rgba(255, 248, 238, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRight: '1px solid rgba(230, 57, 70, 0.06)'
+        }}>
+          <div className="p-4 space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as Tab)}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                    isActive ? 'shadow-sm' : 'hover:bg-black/5'
+                  }`}
+                  style={{
+                    background: isActive ? 'rgba(255,255,255,0.6)' : 'transparent',
+                    color: isActive ? item.color : '#666',
+                    border: isActive ? '1px solid rgba(230,57,70,0.08)' : '1px solid transparent'
+                  }}
+                >
+                  <Icon size={18} />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {isActive && <ChevronRight size={14} style={{ color: item.color }} />}
+                </button>
+              )
+            })}
+          </div>
+          
+          {/* Sidebar Footer */}
+          <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl" style={{ background: 'rgba(230,57,70,0.04)', border: '1px solid rgba(230,57,70,0.06)' }}>
+            <div className="flex items-center gap-3">
+              <Avatar src={user?.avatar} name={user?.displayName || user?.username} size={32} />
+              <div>
+                <p className="text-xs font-semibold" style={{ color: '#1a1a2e' }}>{user?.displayName || user?.username}</p>
+                <p className="text-[10px]" style={{ color: '#999' }}>@{user?.username}</p>
+              </div>
             </div>
-          </>
-        )}
+          </div>
+        </div>
 
-        {activeTab === 'users' && renderUsers()}
-        {activeTab === 'posts' && renderPosts()}
-        {activeTab === 'comments' && renderComments()}
-        {activeTab === 'clubs' && renderClubs()}
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          {/* Stats Cards */}
+          {statsLoading ? (
+            <div className="flex justify-center py-12"><Spinner size={32} /></div>
+          ) : (
+            renderStats()
+          )}
+
+          {/* Charts - Only on Dashboard */}
+          {activeTab === 'dashboard' && renderCharts()}
+
+          {/* Quick Stats - Dashboard only */}
+          {activeTab === 'dashboard' && renderQuickStats()}
+
+          {/* Tab Content */}
+          <div className="mt-6">
+            {activeTab === 'users' && renderUsers()}
+            {activeTab === 'posts' && renderPosts()}
+            {activeTab === 'comments' && renderComments()}
+            {activeTab === 'clubs' && renderClubs()}
+          </div>
+        </div>
       </div>
 
       <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;

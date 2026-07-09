@@ -90,7 +90,6 @@ function CommentItem({ comment, postAuthorId, onDelete, onEdit, onLike, onReply,
                 <Link to={`/profile/${comment.author?.username}`} className="font-semibold text-sm hover:underline" style={{ color: '#1a1a2e' }}>
                   {comment.author?.displayName || comment.author?.username}
                 </Link>
-                {/* ✅ REMOVED: Verified badge */}
                 <span className="text-xs" style={{ color: '#999' }}>
                   · {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                 </span>
@@ -463,6 +462,6 @@ export default function PostDetail() {
         .animate-fade-in { animation: fade-in 0.2s ease-out; }
         .animate-scale-in { animation: scale-in 0.2s ease-out; }
       `}</style>
-    </div>
+    </>
   )
 }

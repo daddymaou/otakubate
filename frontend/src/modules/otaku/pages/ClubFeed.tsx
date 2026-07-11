@@ -317,22 +317,31 @@ export default function ClubFeed() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-start gap-4 mt-2">
+            {/* ✅ Fixed: Truncate club avatar name */}
             <Avatar src={club.avatar} name={club.name} size={64} className="ring-2 ring-white/20 flex-shrink-0 rounded-full" />
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-bold text-white">{club.name}</h1>
+                {/* ✅ Fixed: Truncate long club names */}
+                <h1 className="text-xl font-bold text-white truncate max-w-[200px] sm:max-w-[300px]">
+                  {club.name}
+                </h1>
                 {isOwner && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(251,191,36,0.2)', color: '#FBBF24' }}>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background: 'rgba(251,191,36,0.2)', color: '#FBBF24' }}>
                     Owner
                   </span>
                 )}
                 {isAdmin && !isOwner && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(59,130,246,0.2)', color: '#60A5FA' }}>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background: 'rgba(59,130,246,0.2)', color: '#60A5FA' }}>
                     Admin
                   </span>
                 )}
               </div>
-              {club.description && <p className="text-sm text-gray-400 mt-1">{club.description}</p>}
+              {/* ✅ Fixed: Truncate long descriptions */}
+              {club.description && (
+                <p className="text-sm text-gray-400 mt-1 truncate max-w-[280px] sm:max-w-[400px]">
+                  {club.description}
+                </p>
+              )}
               <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-400">
                 <span className="flex items-center gap-1.5"><Users size={14} /><span>{club.membersCount || 0} members</span></span>
                 <span className="text-gray-600">•</span>

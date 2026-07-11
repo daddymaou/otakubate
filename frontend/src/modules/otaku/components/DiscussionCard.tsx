@@ -110,7 +110,7 @@ export default function DiscussionCard({
         }}
       >
         <div className="p-5">
-          {/* Header */}
+          {/* ✅ Header - Fixed truncation */}
           <div className="flex items-start justify-between">
             <Link 
               to={`/clubs/${clubSlug}/discussion/${discussion._id}`}
@@ -131,27 +131,27 @@ export default function DiscussionCard({
                   className="ring-2 ring-[rgba(230,57,70,0.06)] rounded-full"
                 />
               </button>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  {/* Username - Clickable to profile */}
+                  {/* ✅ Fixed: Truncate long display names */}
                   <button
                     onClick={(e) => {
                       e.preventDefault()
                       goToProfile(discussion.authorId?.username)
                     }}
-                    className="font-semibold text-sm hover:underline transition-all"
+                    className="font-semibold text-sm hover:underline transition-all truncate max-w-[120px] sm:max-w-[180px]"
                     style={{ color: '#1a1a2e' }}
                   >
                     {discussion.authorId?.displayName || discussion.authorId?.username || 'Unknown'}
                   </button>
                   {discussion.authorId?._id === discussion.clubId?.ownerId && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: 'rgba(251,191,36,0.12)', color: '#FBBF24' }}>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background: 'rgba(251,191,36,0.12)', color: '#FBBF24' }}>
                       Owner
                     </span>
                   )}
                   {discussion.authorId?._id !== discussion.clubId?.ownerId && 
                    discussion.clubId?.admins?.includes(discussion.authorId?._id) && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA' }}>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0" style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA' }}>
                       Admin
                     </span>
                   )}
@@ -214,9 +214,11 @@ export default function DiscussionCard({
 
           {/* Content */}
           <Link to={`/clubs/${clubSlug}/discussion/${discussion._id}`}>
-            <h3 className="font-semibold text-base mt-2 leading-snug" style={{ color: '#1a1a2e' }}>
+            {/* ✅ Fixed: Truncate long titles */}
+            <h3 className="font-semibold text-base mt-2 leading-snug truncate max-w-[95%]" style={{ color: '#1a1a2e' }}>
               {discussion.title}
             </h3>
+            {/* ✅ Fixed: Truncate long content */}
             {discussion.content && (
               <p className="text-sm mt-1.5 line-clamp-2 leading-relaxed" style={{ color: '#555' }}>
                 {discussion.content}
@@ -232,7 +234,7 @@ export default function DiscussionCard({
             )}
           </Link>
 
-          {/* Reactions - Always show all 5 */}
+          {/* Reactions */}
           <div className="flex items-center gap-1 mt-4 pt-3 flex-wrap" style={{ borderTop: '1px solid rgba(26,26,46,0.06)' }}>
             {REACTIONS.map((emoji) => {
               const count = getReactionCount(emoji)

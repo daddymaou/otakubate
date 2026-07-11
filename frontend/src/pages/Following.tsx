@@ -13,6 +13,7 @@ export default function Following() {
   const navigate = useNavigate()
   const { user: currentUser } = useAuthStore()
   const qc = useQueryClient()
+  const [loadingUserId, setLoadingUserId] = useState<string | null>(null) // ✅ Per-user loading
 
   // Get the profile user data
   const { data: userData, isLoading: userLoading } = useQuery({
@@ -31,16 +32,24 @@ export default function Following() {
     enabled: !!userData?.user?._id,
   })
 
+  // ✅ Follow mutation with per-user loading
   const followMutation = useMutation({
     mutationFn: (userId: string) => api.post(`/users/${userId}/follow`),
+    onMutate: (userId) => {
+      setLoadingUserId(userId) // ✅ Set loading for THIS user only
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['following', username] })
       qc.invalidateQueries({ queryKey: ['user', username] })
       qc.invalidateQueries({ queryKey: ['user', currentUser?.username] })
       refetch()
       toast.success('Updated!')
+      setLoadingUserId(null) // ✅ Clear loading
     },
-    onError: () => toast.error('Failed to update'),
+    onError: () => {
+      toast.error('Failed to update')
+      setLoadingUserId(null) // ✅ Clear loading on error
+    },
   })
 
   const user = userData?.user
@@ -98,6 +107,7 @@ export default function Following() {
             {following.map((person: any) => {
               const isCurrentUser = currentUser?._id === person._id
               const isFollowing = person.isFollowing
+              const isLoading = loadingUserId === person._id // ✅ Per-user loading check
               
               return (
                 <div 
@@ -117,12 +127,19 @@ export default function Following() {
                         size={48} 
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm truncate" style={{ color: '#1a1a2e' }}>
+                        {/* ✅ Fixed: Truncate long display names */}
+                        <p 
+                          className="font-semibold text-sm truncate max-w-[140px] sm:max-w-[200px]"
+                          style={{ color: '#1a1a2e' }}
+                        >
                           {person.displayName || person.username}
                         </p>
-                        <p className="text-xs" style={{ color: '#999' }}>@{person.username}</p>
+                        {/* ✅ Fixed: Truncate long usernames */}
+                        <p className="text-xs truncate max-w-[120px] sm:max-w-[180px]" style={{ color: '#999' }}>
+                          @{person.username}
+                        </p>
                         {person.bio && (
-                          <p className="text-xs mt-1 line-clamp-1" style={{ color: '#666' }}>
+                          <p className="text-xs mt-1 line-clamp-1 max-w-[200px]" style={{ color: '#666' }}>
                             {person.bio}
                           </p>
                         )}
@@ -132,23 +149,23 @@ export default function Following() {
                     {!isCurrentUser && (
                       <button
                         onClick={() => followMutation.mutate(person._id)}
-                        disabled={followMutation.isPending}
-                        className="px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center gap-1.5 disabled:opacity-50"
+                        disabled={isLoading}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105 flex items-center gap-1.5 disabled:opacity-50 min-w-[75px] justify-center flex-shrink-0"
                         style={{ 
-                          background: isFollowing ? 'transparent' : '#E63946', 
-                          color: isFollowing ? '#1a1a2e' : '#fff', 
-                          border: isFollowing ? '1px solid rgba(230,57,70,0.3)' : 'none' 
+                          background: isFollowing ? 'rgba(230,57,70,0.1)' : '#1a1a2e', 
+                          color: isFollowing ? '#E63946' : '#fff', 
+                          border: isFollowing ? '1px solid rgba(230,57,70,0.2)' : 'none' 
                         }}
                       >
-                        {followMutation.isPending ? (
+                        {isLoading ? (
                           <Loader2 size={12} className="animate-spin" />
                         ) : isFollowing ? (
                           <UserCheck size={12} />
                         ) : (
                           <UserPlus size={12} />
                         )}
-                        {followMutation.isPending 
-                          ? (isFollowing ? 'Unfollowing...' : 'Following...')
+                        {isLoading 
+                          ? (isFollowing ? 'Unfollowing' : 'Following')
                           : (isFollowing ? 'Unfollow' : 'Follow')
                         }
                       </button>

@@ -347,20 +347,21 @@ export default function PostCard({ post, queryKey = ['posts'], onDelete }: Props
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                {/* ✅ Fixed: Truncate long display names */}
                 <Link 
                   to={`/profile/${post.author?.username}`} 
-                  className="font-semibold text-sm transition-colors truncate hover:underline"
+                  className="font-semibold text-sm transition-colors truncate hover:underline max-w-[120px] sm:max-w-[200px]"
                   style={{ color: '#1a1a2e' }}
                 >
                   {post.author?.displayName || post.author?.username}
                 </Link>
                 {/* ✅ REMOVED: isVerified checkmark */}
                 {post.author?.isPremium && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5" style={{ background: 'linear-gradient(135deg, #E63946, #FF6B7A)', color: '#fff' }}>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5 flex-shrink-0" style={{ background: 'linear-gradient(135deg, #E63946, #FF6B7A)', color: '#fff' }}>
                     <Sparkles size={8} /> PRO
                   </span>
                 )}
-                <span className="text-xs" style={{ color: '#999' }}>· {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}</span>
+                <span className="text-xs flex-shrink-0" style={{ color: '#999' }}>· {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}</span>
               </div>
               
               <div className="relative" ref={menuRef}>

@@ -13,6 +13,7 @@ export default function Explore() {
   const qc = useQueryClient()
   const [q, setQ] = useState('')
   const [debouncedQ, setDebouncedQ] = useState('')
+  const [loadingUserId, setLoadingUserId] = useState<string | null>(null) // ✅ Per-user loading state
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Debounce search input - prevents API spam on every keystroke
@@ -27,7 +28,7 @@ export default function Explore() {
     // Set new timer
     debounceTimer.current = setTimeout(() => {
       setDebouncedQ(value.trim())
-    }, 500) // Wait 500ms after user stops typing
+    }, 500)
   }
 
   // Clean search query
@@ -92,19 +93,24 @@ export default function Explore() {
     retryDelay: 5000,
   })
 
-  // Follow/Unfollow mutation
+  // ✅ Follow/Unfollow mutation with per-user loading
   const followMutation = useMutation({
     mutationFn: async ({ userId, action }: { userId: string; action: 'follow' | 'unfollow' }) => {
       const { data } = await api.post(`/users/${userId}/follow`)
       return data
     },
+    onMutate: ({ userId }) => {
+      setLoadingUserId(userId) // ✅ Set loading for THIS user only
+    },
     onSuccess: (data, variables) => {
       qc.invalidateQueries({ queryKey: ['search', 'users'] })
       qc.invalidateQueries({ queryKey: ['recommended-users'] })
       toast.success(variables.action === 'follow' ? 'Followed!' : 'Unfollowed!')
+      setLoadingUserId(null) // ✅ Clear loading
     },
-    onError: (error: any) => {
+    onError: (error: any, variables) => {
       toast.error(error.response?.data?.message || 'Failed to update follow status')
+      setLoadingUserId(null) // ✅ Clear loading on error
     },
   })
 
@@ -127,9 +133,6 @@ export default function Explore() {
   const filteredRecommended = recommendedUsers.filter((u: any) => u._id !== currentUser?._id)
 
   const isLoading = (debouncedQ.length >= 2 && searchLoading) || (!debouncedQ && recommendedLoading)
-
-  // Check if any mutation is pending
-  const isFollowingLoading = followMutation.isPending
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
@@ -215,7 +218,7 @@ export default function Explore() {
                 currentUser={currentUser}
                 onFollowToggle={handleFollowToggle}
                 isFollowing={u.isFollowing}
-                isPending={isFollowingLoading}
+                isLoading={loadingUserId === u._id} // ✅ Only show loading for THIS user
               />
             ))}
           </div>
@@ -242,7 +245,7 @@ export default function Explore() {
               currentUser={currentUser}
               onFollowToggle={handleFollowToggle}
               isFollowing={u.isFollowing}
-              isPending={isFollowingLoading}
+              isLoading={loadingUserId === u._id} // ✅ Only show loading for THIS user
             />
           ))}
         </div>
@@ -271,13 +274,13 @@ export default function Explore() {
   )
 }
 
-// User Card Component
-function UserCard({ user, currentUser, onFollowToggle, isFollowing, isPending }: { 
+// ✅ Updated User Card Component with proper truncation
+function UserCard({ user, currentUser, onFollowToggle, isFollowing, isLoading }: { 
   user: any; 
   currentUser: any; 
   onFollowToggle: (userId: string, isFollowing: boolean) => void;
   isFollowing: boolean;
-  isPending: boolean;
+  isLoading: boolean;
 }) {
   const isOwnProfile = currentUser?._id === user._id
 
@@ -310,13 +313,19 @@ function UserCard({ user, currentUser, onFollowToggle, isFollowing, isPending }:
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-semibold text-base truncate" style={{ color: '#1a1a2e' }}>
+            {/* ✅ Fixed: Truncate long names with max-width */}
+            <span 
+              className="font-semibold text-base truncate max-w-[120px] sm:max-w-[180px]"
+              style={{ color: '#1a1a2e' }}
+            >
               {user.displayName || user.username}
             </span>
-            {/* ✅ REMOVED: Verified badge */}
           </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <span className="text-sm truncate" style={{ color: '#999' }}>@{user.username}</span>
+            {/* ✅ Fixed: Truncate long usernames */}
+            <span className="text-sm truncate max-w-[100px] sm:max-w-[150px]" style={{ color: '#999' }}>
+              @{user.username}
+            </span>
             <span className="text-xs flex-shrink-0" style={{ color: '#ccc' }}>•</span>
             <span className="text-xs flex-shrink-0" style={{ color: '#999' }}>{user.followersCount || 0} followers</span>
           </div>
@@ -331,19 +340,19 @@ function UserCard({ user, currentUser, onFollowToggle, isFollowing, isPending }:
       {!isOwnProfile && (
         <button 
           onClick={() => onFollowToggle(user._id, isFollowing)}
-          disabled={isPending}
-          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0 flex items-center gap-1.5 disabled:opacity-50"
+          disabled={isLoading}
+          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0 flex items-center gap-1.5 disabled:opacity-50 min-w-[80px] justify-center"
           style={{
             background: isFollowing ? 'rgba(230,57,70,0.1)' : '#1a1a2e',
             color: isFollowing ? '#E63946' : '#fff',
             border: isFollowing ? '1px solid rgba(230,57,70,0.2)' : 'none'
           }}
         >
-          {isPending ? (
-            <Loader2 size={12} className="animate-spin" />
+          {isLoading ? (
+            <Loader2 size={14} className="animate-spin" />
           ) : null}
-          {isPending 
-            ? (isFollowing ? 'Unfollowing...' : 'Following...')
+          {isLoading 
+            ? (isFollowing ? 'Unfollowing' : 'Following')
             : (isFollowing ? 'Following' : 'Follow')
           }
         </button>
